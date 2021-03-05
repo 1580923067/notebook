@@ -475,7 +475,7 @@ select
 	t2.con con,
 	case
 		when 0<=t2.age and t2.age<20 then 'a'
-		when  0<=t2.age and t2.age<20 then 'a'
+		when 0<=t2.age and t2.age<20 then 'a'
         when 20<=t2.age and t2.age<40 then 'b' 
         when 40<=t2.age and t2.age<60 then 'c' 
         else 'd'
@@ -1282,3 +1282,201 @@ UNION和UNION ALL关键字都是将两个结果集合并为一个，但这两者
 ```
 
 8）简单描述一下lateral view语法在HQL中的应用场景，并写一个HQL实例
+
+# 课件中的练习题
+
+## case when
+
+| name | dept_id | sex  |
+| ---- | ------- | ---- |
+| 悟空 | A       | 男   |
+| 大海 | A       | 男   |
+| 宋宋 | B       | 男   |
+| 凤姐 | A       | 女   |
+| 婷姐 | B       | 女   |
+| 婷婷 | B       | 女   |
+
+求出不同部门男女各多少人？
+
+A   2    1
+
+B   1    2
+
+```
+select 
+	dept_id,
+	sum(case sex when '男' then 1 else 0 end) male_count,
+	sum(case sex when '女' then 1 else 0 end) female_count
+from 
+	emp_sex
+group by dept_id;
+```
+
+## 行转列
+
+CONCAT(string A/col, string B/col…)：返回输入字符串连接后的结果，支持任意个输入字符串;
+
+CONCAT_WS(separator, str1, str2,...)：它是一个特殊形式的 CONCAT()。第一个参数剩余参数间的分隔符。分隔符可以是与剩余参数一样的字符串。如果分隔符是 NULL，返回值也将为 NULL。这个函数会跳过分隔符参数后的任何 NULL 和空字符串。分隔符将被加到被连接的字符串之间;
+
+COLLECT_SET(col)：函数只接受基本数据类型，它的主要作用是将某字段的值进行去重汇总，产生array类型字段。
+
+| name   | constellation | blood_type |
+| ------ | ------------- | ---------- |
+| 孙悟空 | 白羊座        | A          |
+| 大海   | 射手座        | A          |
+| 宋宋   | 白羊座        | B          |
+| 猪八戒 | 白羊座        | A          |
+| 凤姐   | 射手座        | A          |
+| 苍老师 | 白羊座        | B          |
+
+需求：
+
+把星座和血型一样的人归类到一起。结果如下：
+
+射手座,A      大海|凤姐
+
+白羊座,A      孙悟空|猪八戒
+
+白羊座,B       宋宋|苍老师
+
+```
+select
+	t1.base,
+ 	concat_ws("|",collect_set(t1.name)) name
+from
+	(select
+		name,
+		concat(constellation,",",blood_type) base
+	 from
+	 	person_info)t1
+group by t1.base;
+```
+
+## 列转行
+
+EXPLODE(col)：将hive一列中复杂的array或者map结构拆分成多行。
+
+LATERAL VIEW
+		用法：LATERAL VIEW udtf(expression) tableAlias AS columnAlias
+		解释：用于和split, explode等UDTF一起使用，它能够将一列数据拆成多行数据，在此基础上可以对拆分后的数据进行聚合。
+
+Lateral view explode()   临时表名   as  临时列名
+
+处理：
+    	①先explode
+		②需要将炸裂后的1列N行，在逻辑上依然视作1列1行，实际是1列N行，和movie进行笛卡尔集
+		这个操作在hive中称为侧写(lateral vIEW)
+		
+
+		Lateral view explode()   临时表名   as  临时列名
+
+| movie         | category                 |
+| ------------- | ------------------------ |
+| 《疑犯追踪》  | 悬疑,动作,科幻,剧情      |
+| 《Lie to me》 | 悬疑,警匪,动作,心理,剧情 |
+| 《战狼2》     | 战争,动作,灾难           |
+
+将电影分类中的数组数据展开。结果如下：
+
+《疑犯追踪》   悬疑
+
+《疑犯追踪》   动作
+
+《疑犯追踪》   科幻
+
+《疑犯追踪》   剧情
+
+《Lie to me》  悬疑
+
+《Lie to me》  警匪
+
+《Lie to me》  动作
+
+《Lie to me》  心理
+
+《Lie to me》  剧情
+
+《战狼2》     战争
+
+《战狼2》     动作
+
+《战狼2》     灾难
+
+```
+select 
+	m.move,
+	tb1.cate
+from
+	movie_info m
+lateral view
+	explode(split(category,",")) tb1 as cate;
+```
+
+## 窗口函数
+
+OVER()：指定分析函数工作的数据窗口大小，这个数据窗口大小可能会随着行的变而变化。
+
+CURRENT ROW：当前行
+
+n PRECEDING：往前n行数据
+
+n FOLLOWING：往后n行数据
+
+UNBOUNDED：起点，UNBOUNDED PRECEDING 表示从前面的起点， UNBOUNDED FOLLOWING表示到后面的终点
+
+LAG(col,n,default_val)：往前第n行数据
+
+LEAD(col,n, default_val)：往后第n行数据
+
+NTILE(n)：把有序窗口的行分发到指定数据的组中，各个组有编号，编号从1开始，对于每一行，NTILE返回此行所属的组的编号。注意：n必须为int类型。
+
+**数据准备：name，orderdate，cost**
+
+jack,2017-01-01,10
+
+tony,2017-01-02,15
+
+jack,2017-02-03,23
+
+tony,2017-01-04,29
+
+jack,2017-01-05,46
+
+jack,2017-04-06,42
+
+tony,2017-01-07,50
+
+jack,2017-01-08,55
+
+mart,2017-04-08,62
+
+mart,2017-04-09,68
+
+neil,2017-05-10,12
+
+mart,2017-04-11,75
+
+neil,2017-06-12,80
+
+mart,2017-04-13,94
+
+**需求**
+
+（1）查询在2017年4月份购买过的顾客及总人数
+
+```
+select
+	name,
+	count(*) over()
+from business
+where substring(orderdate,1,7)='2017-04'
+group by name;
+```
+
+（2）查询顾客的购买明细及月购买总额
+
+（3）上述的场景, 将每个顾客的cost按照日期进行累加
+
+（4）查询每个顾客上次的购买时间
+
+（5）查询前20%时间的订单信息
