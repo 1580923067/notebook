@@ -25,21 +25,6 @@ boolean 只有两个值：true、false，可以使用 1 bit 来存储，但是�
 
 - 由于基本数据类型不是对象，所以java并不是纯面向对象的语言，好处是效率较高（全部包装为对象效率较低)。
 - Java是一个面向对象的编程语言，基本类型并不具有对象的性质，为了让基本类型也具有对象的特征，就出现了包装类型（如我们在使用集合类型Collection时就一定要使用包装类型而非基本类型)，它相当于将基本类型“包装起来”，使得它具有了对象的性质，并且为其添加了属性和方法，丰富了基本类型的操作。
-- 
-
-#### 有哪些
-
- 基本类型  	  包装器类型  
-boolean	Boolean
-char	Character
-int	Integer
-byte	Byte
-short	Short
-long	Long
-float	Float
-double	Double
-
-- Number是所有数字包装类的父类
 
 #### 自动装箱、自动拆箱（编译器行为)
 
@@ -1496,12 +1481,9 @@ Java 注解是附加在代码中的一些元信息，用于一些工具在编译
 - JRE：Java Runtime Environment，Java 运行环境的简称，为 Java 的运行提供了所需的环境。它是一个 JVM 程序，主要包括了 JVM 的标准实现和一些 Java 基本类库。
 - JDK：Java Development Kit，Java 开发工具包，提供了 Java 的开发及运行环境。JDK 是 Java 开发的核心，集成了 JRE 以及一些其它的工具，比如编译 Java 源码的编译器 javac 等。
 
-## 参考资料
 
-- Eckel B. Java 编程思想[M]. 机械工业出版社, 2002.
-- Bloch J. Effective java[M]. Addison-Wesley Professional, 2017.
 
-# Java 容器
+# Java 集合
 
 ## 概览
 
@@ -1511,27 +1493,127 @@ Java 注解是附加在代码中的一些元信息，用于一些工具在编译
 
 <div align="center"> <img src="https://cs-notes-1256109796.cos.ap-guangzhou.myqcloud.com/image-20191208220948084.png"/> </div><br>
 
-#### 1. Set
+#### Set
+
+没有顺序，不可重复
 
 - TreeSet：基于红黑树实现，支持有序性操作，例如根据一个范围查找元素的操作。但是查找效率不如 HashSet，HashSet 查找的时间复杂度为 O(1)，TreeSet 则为 O(logN)。
-
 - HashSet：基于哈希表实现，支持快速查找，但不支持有序性操作。并且失去了元素的插入顺序信息，也就是说使用 Iterator 遍历 HashSet 得到的结果是不确定的。
-
 - LinkedHashSet：具有 HashSet 的查找效率，并且内部使用双向链表维护元素的插入顺序。
 
-#### 2. List
+##### HashSet（底层是HashMap)
+
+- Set不允许元素重复。
+- 基于HashMap实现，无容量限制。
+- 是非线程安全的。
+
+
+- 
+
+##### TreeSet（底层是TreeMap)
+
+- 基于TreeMap实现，支持排序（自然排序 或者 根据创建TreeSet 时提供的 Comparator 进行排序)。
+- 是非线程安全的。
+
+
+
+##### LinkedHashSet（继承自HashSet，底层是LinkedHashMap)
+
+- LinkedHashSet继承自HashSet，源码更少、更简单，唯一的区别是LinkedHashSet内部使用的是LinkHashMap。这样做的意义或者好处就是LinkedHashSet中的元素顺序是可以保证的，也就是说遍历序和插入序是一致的。
+
+##### BitSet（位集，底层是long数组，用于替代List<Boolean>)
+
+- BitSet是位操作的对象，值只有0或1即false和true，内部维护了一个long数组，初始只有一个long，所以BitSet最小的size是64（8个字节64个位，可以存储64个数字)，当随着存储的元素越来越多，BitSet内部会动态扩充，最终内部是由N个long来存储，这些针对操作都是透明的。
+- 默认情况下，BitSet的所有位都是false即0。
+- 不是线程安全的。
+- 用1位来表示一个数据是否出现过，0为没有出现过，1表示出现过。使用的时候既可根据某一个是否为0表示，此数是否出现过。
+
+- 一个1GB的空间，有8*1024*1024*1024 = 8.58*10^9bit，也就是1GB的空间可以表示85亿多个数。
+- 常见的应用是那些需要对海量数据进行一些统计工作的时候，比如日志分析、用户数统计等等，如统计40亿个数据中没有出现的数据，将40亿个不同数据进行排序，海量数据去重等等。
+
+- JDK选择long数组作为BitSet的内部存储结构是出于性能的考虑，因为BitSet提供and和or这种操作，需要对两个BitSet中的所有bit位做and或者or，实现的时候需要遍历所有的数组元素。使用long能够使得循环的次数降到最低，所以Java选择使用long数组作为BitSet的内部存储结构。
+
+##### CopyOnWriteArraySet（底层是CopyOnWriteArrayList)
+
+- 基于CopyOnWriteArrayList实现，其唯一的不同是在add时调用的是CopyOnWriteArrayList的addIfAbsent方法。
+- 在每次add的时候都要进行数组的遍历，因此其性能会略低于CopyOnWriteArrayList。
+
+
+
+####  List
+
+有顺序，可重复
 
 - ArrayList：基于动态数组实现，支持随机访问。
-
 - Vector：和 ArrayList 类似，但它是线程安全的。
-
 - LinkedList：基于双向链表实现，只能顺序访问，但是可以快速地在链表中间插入和删除元素。不仅如此，LinkedList 还可以用作栈、队列和双向队列。
 
-#### 3. Queue
+##### ArrayList
 
-- LinkedList：可以用它来实现双向队列。
+- 基于数组实现，无容量的限制。
+- 在执行插入元素时可能要扩容，在删除元素时并不会减小数组的容量，在查找元素时要遍历数组，对于非null的元素采取equals的方式寻找。
+- 是非线程安全的。
+- 注意点：
+  - （1)ArrayList随机元素时间复杂度O(1)，插入删除操作需大量移动元素，效率较低
+  - （2)为了节约内存，当新建容器为空时，会共享Object[] EMPTY_ELEMENTDATA = {}和 Object[] DEFAULTCAPACITY_EMPTY_ELEMENTDATA = {}空数组
+  - （3)容器底层采用数组存储，每次扩容为1.5倍
+  - （4)ArrayList的实现中大量地调用了Arrays.copyof()和System.arraycopy()方法，其实Arrays.copyof()内部也是调用System.arraycopy()。System.arraycopy()为Native方法
+  - （5)两个ToArray方法
+- Object[] toArray()方法。该方法有可能会抛出java.lang.ClassCastException异常
+- <T> T[] toArray(T[] a)方法。该方法可以直接将ArrayList转换得到的Array进行整体向下转型
+  - （6)ArrayList可以存储null值
+  - （7)ArrayList每次修改（增加、删除)容器时，都是修改自身的modCount；在生成迭代器时，迭代器会保存该modCount值，迭代器每次获取元素时，会比较自身的modCount与ArrayList的modCount是否相等，来判断容器是否已经被修改，如果被修改了则抛出异常（fast-fail机制)。
 
-- PriorityQueue：基于堆结构实现，可以用它来实现优先队列。
+##### LinkedList
+
+- 基于双向链表机制
+- 在插入元素时，须创建一个新的Entry对象，并切换相应元素的前后元素的引用；在查找元素时，须遍历链表；在删除元素时，须遍历链表，找到要删除的元素，然后从链表上将此元素删除即可。
+- 是非线程安全的。
+- 注意：
+  - （1)LinkedList有两个构造参数，一个为无參构造，只是新建一个空对象，第二个为有参构造，新建一个空对象，然后把所有元素添加进去。
+  - （2)LinkedList的存储单元为一个名为Node的内部类，包含pre指针，next指针，和item元素，实现为双向链表
+  - （3)LinkedList的删除、添加操作时间复杂度为O(1)，查找时间复杂度为O(n)，查找函数有一定优化，容器会先判断查找的元素是离头部较近，还是尾部较近，来决定从头部开始遍历还是尾部开始遍历
+  - （4)LinkedList实现了Deque接口，因此也可以作为栈、队列和双端队列来使用。
+  - （5)LinkedList可以存储null值
+
+##### Stack
+
+- 基于Vector实现，支持LIFO。
+
+##### CopyOnWriteArrayList
+
+- 是一个线程安全、并且在读操作时无锁的ArrayList。
+- 很多时候，我们的系统应对的都是读多写少的并发场景。CopyOnWriteArrayList容器允许并发读，读操作是无锁的，性能较高。至于写操作，比如向容器中添加一个元素，则首先将当前容器复制一份，然后在新副本上执行写操作，结束之后再将原容器的引用指向新容器。
+
+- 优点
+  - 1)采用读写分离方式，读的效率非常高
+  - 2)CopyOnWriteArrayList的迭代器是基于创建时的数据快照的，故数组的增删改不会影响到迭代器
+
+- 缺点
+  - 1)内存占用高，每次执行写操作都要将原容器拷贝一份，数据量大时，对内存压力较大，可能会引起频繁GC
+  - 2)只能保证数据的最终一致性，不能保证数据的实时一致性。写和读分别作用在新老不同容器上，在写操作执行过程中，读不会阻塞但读取到的却是老容器的数据。
+
+
+
+#### Queue
+
+- 先进先出”（FIFO—first in first out)的线性表
+- LinkedList类实现了Queue接口，因此我们可以把LinkedList当成Queue来用。
+- Java里有一个叫做Stack的类，却没有叫做Queue的类（它是个接口名字)。当需要使用栈时，Java已不推荐使用Stack，而是推荐使用更高效的ArrayDeque；既然Queue只是一个接口，当需要使用队列时也就首选ArrayDeque了（次选是LinkedList)。
+
+- 
+
+- Deque既可以作为栈使用，也可以作为队列使用。
+  
+
+##### Queue实现类之间的区别
+
+- 非线程安全的：ArrayDeque、LinkedList、PriorityQueue
+- 线程安全的：ConcurrentLinkedQueue、ConcurrentLinkedDeque、ArrayBlockingQueue、LinkedBlockingQueue、PriorityBlockingQueue
+- 线程安全的又分为阻塞队列和非阻塞队列，阻塞队列提供了put、take等会阻塞当前线程的方法，比如ArrayBlockingQueue、LinkedBlockingQueue、PriorityBlockingQueue，也有offer、poll等阻塞一段时间候返回的方法；
+- 非阻塞队列是使用CAS机制保证offer、poll等可以线程安全地入队出队，并且不需要加锁，不会阻塞当前线程，比如ConcurrentLinkedQueue、ConcurrentLinkedDeque。
+
+
 
 ### Map
 
@@ -1542,56 +1624,62 @@ Java 注解是附加在代码中的一些元信息，用于一些工具在编译
 - HashTable：和 HashMap 类似，但它是线程安全的，这意味着同一时刻多个线程同时写入 HashTable 不会导致数据不一致。它是遗留类，不应该去使用它，而是使用 ConcurrentHashMap 来支持线程安全，ConcurrentHashMap 的效率会更高，因为 ConcurrentHashMap 引入了分段锁。
 - LinkedHashMap：使用双向链表来维护元素的顺序，顺序为插入顺序或者最近最少使用（LRU）顺序。
 
-## 容器的基本机制
+#### HashMap（底层是数组+链表/红黑树，无序键值对集合，非线程安全)
+
+- 基于哈希表实现，链地址法。
+- loadFactor默认为0.75，threshold（阈)为12，并创建一个大小为16的Entry数组。
+- 在遍历时是无序的，如需有序，建议使用TreeMap。
+- 采用数组方式存储key、value构成的Entry对象，无容量限制。
+- 基于key hash寻找Entry对象存放在数组中的位置，对于hash冲突采用链表/红黑树的方式来解决。
+- HashMap在插入元素时可能会扩大数组的容量，在扩大容量时需要重新计算hash，并复制对象到新的数组中。
+- 是非线程安全的。
+
+- // 1. 哈希冲突时采用链表法的类，一个哈希桶多于8个元素改为TreeNode
+- static class Node<K,V> implements Map.Entry<K,V>
+- // 2. 哈希冲突时采用红黑树存储的类，一个哈希桶少于6个元素改为Node
+- static final class TreeNode<K,V> extends LinkedHashMap.Entry<K,V>
+
+- 某个桶对应的链表过长的话搜索效率低，改为红黑树效率会提高。
+
+- 为何按位与而不是取摸 hashmap的iterator读取时是否会读到另一个线程put的数据 红黑树；hashmap报ConcurrentModificationException的情况
+
+- Hash冲突中链表结构的数量大于8个，则调用树化转为红黑树结构，红黑树查找稍微快些；红黑树结构的数量小于6个时，则转为链表结构
+- 如果加载因子越大，对空间的利用更充分，但是查找效率会降低（链表长度会越来越长)；如果加载因子太小，那么表中的数据将过于稀疏（很多空间还没用，就开始扩容了)，对空间造成严重浪费。如果我们在构造方法中不指定，则系统默认加载因子为0.75，这是一个比较理想的值，一般情况下我们是无需修改的。
+  - 一般对哈希表的散列很自然地会想到用hash值对length取模（即除法散列法)，Hashtable中也是这样实现的，这种方法基本能保证元素在哈希表中散列的比较均匀，但取模会用到除法运算，效率很低，HashMap中则通过h&(length-1)的方法来代替取模，同样实现了均匀的散列，但效率要高很多，这也是HashMap对Hashtable的一个改进。
+  - 哈希表的容量一定要是2的整数次幂。首先，length为2的整数次幂的话，h&(length-1)就相当于对length取模，这样便保证了散列的均匀，同时也提升了效率；其次，length为2的整数次幂的话，为偶数，这样length-1为奇数，奇数的最后一位是1，这样便保证了h&(length-1)的最后一位可能为0，也可能为1（这取决于h的值)，即与后的结果可能为偶数，也可能为奇数，这样便可以保证散列的均匀性，而如果length为奇数的话，很明显length-1为偶数，它的最后一位是0，这样h&(length-1)的最后一位肯定为0，即只能为偶数，这样任何hash值都只会被散列到数组的偶数下标位置上，这便浪费了近一半的空间，因此，length取2的整数次幂，是为了使不同hash值发生碰撞的概率较小，这样就能使元素在哈希表中均匀地散列。
+
+#### Hashtable
+
+- Hashtable同样是基于哈希表实现的，同样每个元素是一个key-value对，其内部也是通过单链表解决冲突问题，容量不足（超过了阈值)时，同样会自动增长。
+- Hashtable也是JDK1.0引入的类，是线程安全的，能用于多线程环境中。
+- Hashtable同样实现了Serializable接口，它支持序列化，实现了Cloneable接口，能被克隆。
+- Hashtable#Entry
 
 
 
-## 容器中的设计模式
+#### LinkedHashMap（底层是(数组+链表/红黑树)+环形双向链表，继承自HashMap)
 
-### 迭代器模式
+- LinkedHashMap是key键有序的HashMap的一种实现。它除了使用哈希表这个数据结构，使用环形双向链表来保证key的顺序。
+- HashMap是无序的，也就是说，迭代HashMap所得到的元素顺序并不是它们最初放置到HashMap的顺序。HashMap的这一缺点往往会造成诸多不便，因为在有些场景中，我们确需要用到一个可以保持插入顺序的Map。庆幸的是，JDK为我们解决了这个问题，它为HashMap提供了一个子类 —— LinkedHashMap。虽然LinkedHashMap增加了时间和空间上的开销，但是它通过维护一个额外的双向链表保证了迭代顺序。特别地，该迭代顺序可以是插入顺序，也可以是访问顺序。因此，根据链表中元素的顺序可以将LinkedHashMap分为：保持插入顺序的LinkedHashMap 和 保持访问顺序（LRU，get后调整链表序，最新获取的放在最后)的LinkedHashMap，其中LinkedHashMap的默认实现是按插入顺序排序的。
 
-<div align="center"> <img src="https://cs-notes-1256109796.cos.ap-guangzhou.myqcloud.com/image-20191208225301973.png"/> </div><br>
+- 特点：
+- 一般来说，如果需要使用的Map中的key无序，选择HashMap；如果要求key有序，则选择TreeMap。
+  - 但是选择TreeMap就会有性能问题，因为TreeMap的get操作的时间复杂度是O(log(n))的，相比于HashMap的O(1)还是差不少的，LinkedHashMap的出现就是为了平衡这些因素，使得能够以O(1)时间复杂度增加查找元素，又能够保证key的有序性
 
-Collection 继承了 Iterable 接口，其中的 iterator() 方法能够产生一个 Iterator 对象，通过这个对象就可以迭代遍历 Collection 中的元素。
+- 实现原理：
+- 将所有Entry节点链入一个双向链表的HashMap。在LinkedHashMap中，所有put进来的Entry都保存在哈希表中，但由于它又额外定义了一个以head为头结点的双向链表，因此对于每次put进来Entry，除了将其保存到哈希表上外，还会将其插入到双向链表的尾部。
 
-从 JDK 1.5 之后可以使用 foreach 方法来遍历实现了 Iterable 接口的聚合对象。
+- TreeMap（底层是红黑树)
 
-```java
-List<String> list = new ArrayList<>();
-list.add("a");
-list.add("b");
-for (String item : list) {
-    System.out.println(item);
-}
-```
 
-### 适配器模式
+- 支持排序的Map实现。
+- 基于红黑树实现，无容量限制。
+- 是非线程安全的。
 
-java.util.Arrays#asList() 可以把数组类型转换为 List 类型。
-
-```java
-@SafeVarargs
-public static <T> List<T> asList(T... a)
-```
-
-应该注意的是 asList() 的参数为泛型的变长参数，不能使用基本类型数组作为参数，只能使用相应的包装类型数组。
-
-```java
-Integer[] arr = {1, 2, 3};
-List list = Arrays.asList(arr);
-```
-
-也可以使用以下方式调用 asList()：
-
-```java
-List list = Arrays.asList(1, 2, 3);
-```
-
-## 源码分析
-
-如果没有特别说明，以下源码分析基于 JDK 1.8。
-
-在 IDEA 中 double shift 调出 Search EveryWhere，查找源码文件，找到之后就可以阅读源码。
+- TreeMap是根据key进行排序的，它的排序和定位需要依赖比较器或覆写Comparable接口，也因此不需要key覆写hashCode方法和equals方法，就可以排除掉重复的key，而HashMap的key则需要通过覆写hashCode方法和equals方法来确保没有重复的key
+- TreeMap的查询、插入、删除效率均没有HashMap高，一般只有要对key排序时才使用TreeMap。
+- TreeMap的key不能为null，而HashMap的key可以为null。
+- TreeMap#Entr
 
 ### ArrayList
 
@@ -2597,9 +2685,209 @@ public final class ConcurrentCache<K, V> {
 }
 ```
 
+## List、Set、Map 之间的区别
+
+**List**
+
+ 1.可以允许重复的对象。
+ 2.可以插入多个null元素。
+ 3.是一个有序容器，保持了每个元素的插入顺序，输出的顺序就是插入的顺序。
+ 4.常用的实现类有 ArrayList、LinkedList 和 Vector。
+
+**Set：**
+
+1.不允许重复对象
+2.无序容器，无法保证每个元素的存储顺序，TreeSet通过 Comparator 或者 Comparable 维护了一个排序顺序。
+3.只允许一个 null 元素
+4.Set 接口最流行的几个实现类是 HashSet、LinkedHashSet 以及 TreeSet。
+
+**Map：**
+
+1.Map不是collection的子接口或者实现类。Map是一个接口。
+ 2.Map 的 每个 Entry 都持有两个对象，也就是一个键一个值（键值对），Map 可能会持有相同的值对象但键对象必须是唯一的。
+3.TreeMap 也通过 Comparator 或者 Comparable 维护了一个排序顺序。
+4.Map 里你可以拥有随意个 null 值但最多只能有一个 null 键。
+5.Map 接口最流行的几个实现类是 HashMap、LinkedHashMap、Hashtable 和 TreeMap。（HashMap、TreeMap最常用） 
+
+## Arraylist 与 LinkedList 的区别
+
+**1. 底层数据结构：** `Arraylist` 底层使用的是  动态数组 ；`LinkedList` 底层使用的是 **双向链表** 数据结构 
+
+**2.插入删除数据方式：** ArrayList插入删除元素时分两种情况：①把元素添加到末尾所需的时间复杂度是O(1)，②在指定位置添加删除元素时就需要移动整个数组，操作代价就比较大了；LinkedList 对于添加删除方法只需要断链然后更改指向，所需的消耗就很小了。 
+
+**3.是否支持快速随机访问：** ArrayList 支持高效的随机元素访问而LinkedList 不支持。 
+
+**4. 内存空间占用：** ArrayList的空 间浪费主要体现在在list列表的结尾会预留一定的容量空间，而LinkedList的空间花费则体现在它的每一个元素都需要消耗比ArrayList更多的空间（因为要存放直接后继和直接前驱以及数据）。
+
+ ## ArrayList 和 Vector 的区别
+
+`Vector`类的所有方法都是同步的。可以由两个线程安全地访问一个Vector对象、但是一个线程访问Vector的话代码要在同步操作上耗费大量的时间。Vector一次扩容为原来的2倍。
+
+`Arraylist`不是同步的，所以在不需要保证线程安全时建议使用Arraylist，需要时使用 CopyOnWriteArrayList 。Arraylist一次扩容为1.5倍。
+
+##  ArrayList 的扩容机制？
+
+**前提：以无参数构造方法创建 ArrayList 时，实际上初始化赋值的是一个空数组。当真正对数组进行添加元素操作时，才真正分配容量。**
+
+流程：
+
+当我们要 add 进第1个元素到 ArrayList 时，数组长度为0 （因为还是一个空的 list），因为执行了 `ensureCapacityInternal()` 方法 ，所以更改了 minCapacity，此时为10（默认最小容量）。此时，就会执行grow 方法把容量扩大为10，然后一直add到第11个元素时，会对旧数组**位移运算**得到新数组，然后把旧数组整个复制到新数组上，是旧容量的 1.5 倍。 
+
+## 如何实现数组和 List 之间的转换？
+
+- List转换成为数组：调用ArrayList的toArray方法。
+- 数组转换成为List：调用Arrays的asList方法。
+
+ ## Array 和 ArrayList 有何区别？
+
+- Array可以容纳基本类型和对象，而ArrayList只能容纳对象。 
+- Array是指定大小的，而ArrayList大小是固定的。 
+- Array没有提供ArrayList那么多功能，比如addAll、removeAll和iterator等。
+
+## HashMap 和 Hashtable 的区别
+
+1. **线程是否安全：** HashMap 是非线程安全的，HashTable 是线程安全的；HashTable 内部的方法基本都经过`synchronized` 修饰。（如果保证线程安全的话使用 ConcurrentHashMap ）；
+2. **效率：** 因为线程安全的问题，HashMap 要比 HashTable 效率高一点。另外，HashTable 基本被淘汰，不要在代码中使用它；
+3. **对Null key 和Null value的支持：** HashMap 中，null 可以作为键，这样的键只有一个，可以有一个或多个键所对应的值为 null。。但是在 HashTable 中 put 进的键值只要有一个 null，直接抛出 NullPointerException。
+4. **初始容量大小和每次扩充容量大小的不同 ：** ①创建时如果不指定容量初始值，Hashtable 默认的初始大小为11，之后每次扩充，容量变为原来的2n+1。HashMap 默认的初始化大小为16。之后每次扩充，容量变为原来的2倍。②创建时如果给定了容量初始值，那么 Hashtable 会直接使用你给定的大小，而 HashMap 会将其扩充为2的幂次方大小；
+5. **底层数据结构：** JDK1.8 以后的 HashMap 在解决哈希冲突时有了较大的变化，当链表长度大于阈值（默认为8）时，将链表转化为红黑树，以减少搜索时间。Hashtable 没有这样的机制。
 
 
-# Java 并发与多线程
+
+## 说说 HashMap
+
+1.内部存储结构：数组+链表+红黑树（JDK8）
+
+2.默认容量16（数组长度），默认装载因子0.75。
+
+3.key 和 value 对数据类型的要求都是泛型。
+
+4.key 可以为 null，放在 table[0] 中。
+
+5.hashcode：计算键的hashcode作为存储键信息的数组下标用于查找键对象的存储位置。equals：HashMap 使用 equals() 判断当前的键是否与表中存在的键相同。
+
+## HashMap 的结构
+
+在 JDK 1.7 中 HashMap 是以数组加链表的形式组成的，JDK 1.8 之后新增了红黑树的组成结构，当链表大于 8 并且容量大于 64 时，链表结构会转换成红黑树结构，添加红黑树是因为一旦链表过长，会严重影响 HashMap 的性能，而红黑树具有快速增删改查的特点，这样就可以有效的解决链表过长时操作比较慢的问题。
+
+## HashMap 的长度为什么是2的幂次方
+
+HashMap为了存取高效，要尽量较少碰撞，就是要尽量把数据分配均匀，每个链表长度大致相同，这个实现就在把数据存到哪个链表中的算法；这个算法实际就是取模，hash%length，计算机中直接求余效率不如位移运算，源码中做了优化hash&(length-1)， 
+
+**hash%length==hash&(length-1)的前提是 length 是2的 n 次方；** 
+
+## 什么是 HashMap 的加载因子？加载因子为什么是 0.75？
+
+判断什么时候进行扩容的，假如加载因子是 0.5，HashMap 的初始化容量是 16，那么当 HashMap 中有 16*0.5=8 个元素时，HashMap 就会进行扩容。
+
+这其实是出于容量和性能之间平衡的结果：
+
+* 当加载因子设置比较大的时候，扩容的门槛就被提高了，扩容发生的频率比较低，占用的空间会比较小，但此时发生Hash冲突的几率就会提升，因此需要更复杂的数据结构来存储元素，这样对元素的操作时间就会增加，运行效率也会因此降低；
+* 而当加载因子值比较小的时候，扩容的门槛会比较低，因此会占用更多的空间，多次扩容也会影响性能。
+* HashMap的容量有一个固定的要求就是一定是2的幂次方。所以，如果负载因子是3/4的话，那么和capacity的乘积结果就可以是一个整数。
+
+
+所以综合了以上情况就取了一个 0.5 到 1.0 的平均数 0.75 作为加载因子。
+
+## put 方法流程
+
+map.put("a","b")的整个流程：
+
+      	1. 先判断散列表是否没有初始化或者为空，如果是就扩容
+                	2. 根据键值 key 计算 hash 值，得到要插入的数组索引 
+             	3. 判断要插入的那个数组是否为空：
+                               	1. 如果为空直接插入。
+                               	2. 如果不为空，判断 key 的值是否是重复（用 equals 方法）：
+                       	1. 如果是就直接覆盖
+                       	2. 如果不重复就再判断此节点是否已经是红黑树节点：
+                       	1. 如果是红黑树节点就把新增节点放入树中
+                                 	2. 如果不是，就开始遍历链表：
+                                     1. 循环判断直到链表最底部，到达底部就插入节点，然后判断是否大于链表长度是否大于8：
+                                        1. 如果大于8就转换为红黑树
+                                        2. 如果不大于8就继续下一步
+                                           2. 到底部之前发现有重复的值，就覆盖。
+           	4. 判断是否需要扩容，如果需要就扩容。
+
+## HashMap 的扩容机制
+
+扩容时机：当`size`大于`threshold`的时候，并不一定会触发扩容机制，只要有一个新建的节点出现哈希冲突，则立刻`resize`。 
+
+- size记录的是map中包含的Entry的数量
+- 而threshold记录的是需要resize的阈值 且 `threshold = loadFactor * capacity`
+- capacity 其实就是桶的长度
+
+步骤：
+
+* 数组，阈值都扩大一倍
+* 如果旧数组不为空，开始遍历旧数组
+* 遍历到的数组上只有一个元素，就直接迁移
+* 如果是红黑树就使用 split 方法
+* 如果是链表就把链表拆成两个，按照高位运算的结果放到新数组中并且保留顺序
+
+#### JDK 1.8 在扩容方面对 HashMap 做了哪些优化？
+
+1.7创建一个容量的新数组，重新计算每个元素在数组中的位置并且进行迁移。 
+
+1.8中在扩容HashMap的时候，不需要像1.7中去重新计算元素的hash，只需要看看原来的hash值新增的哪个二进制数是1还是0就好了，如果是0的话表示索引没有变，是1的话表示索引变成“oldCap+原索引”，这样即省去了重新计算hash值的时间，并且扩容后链表元素位置不会倒置。 
+
+## HashMap 1.7和1.8版本区别
+
+* **数据结构：**1.7：数组+链表，1.8：数组+链表+红黑树
+* **新节点插入方式：**1.7：头插法 ，1.8：直接在尾部插入
+* **扰动运算次数：**1.7：运算多，1.8：运算少
+* **插入和扩容的判断：**1.7：先扩容后插入，1.8：先插入后扩容
+  * 为什么？1.8增加了判断是否为红黑树节点，先扩容的话不知道到底扩链表节点还是红黑树。
+
+## HashMap为什么不直接使用hashCode()处理后的哈希值直接作为table的下标？
+
+ `hashCode()`方法返回的是int整数类型，其范围为-(2 ^ 31)~(2 ^ 31 - 1)，  而HashMap的容量范围是在16（初始化默认值）~2 ^ 30，  HashMap通常情况下是取不到最大值的，并且设备上也难以提供这么多的存储空间，从而导致通过`hashCode()`计算出的哈希值可能不在数组大小范围内，进而无法匹配存储位置； 
+
+**怎么解决呢？** 
+
+1.HashMap自己实现了自己的`hash()`方法，通过两次扰动使得它自己的哈希值高低位自行进行异或运算，降低哈希碰撞概率也使得数据分布更平均； 
+
+2.保证数组长度为2的幂次方的时候，使用`hash()`运算之后的值与运算（&）（数组长度 - 1）来获取数组下标的方式进行存储。
+
+**那为什么是两次扰动呢？** 
+
+这样就是加大哈希值低位的随机性，使得分布更均匀，从而提高对应数组存储下标位置的随机性&均匀性，最终减少Hash冲突，两次就够了，已经达到了高位低位同时参与运算的目的； 
+
+## HashMap1.7为什么不安全？⭐
+
+HashMap在rehash的时候，这个会重新将原数组的内容重新hash到新的扩容数组中，在多线程的环境下，存在同时其他put操作，如果hash值相同，把值插入同一个链表，会因为头插法的特性造成闭环，导致在get时会出现死循环，所以HashMap是线程不安全的。                       
+
+#### 高并发下HashMap1.7的环是如何产生的
+
+若当前线程一此时获得ertry节点，但是被线程中断无法继续执行，此时线程二进入transfer函数，并把函数顺利执行，此时新表中的某个位置有了节点，之后线程一获得执行权继续执行，在tranfer方法中会把next指向自己造成闭环，然后在get时会出现死循环。
+
+## 为什么HashMap中String、Integer这样的包装类适合作为Key？⭐
+
+String、Integer等包装类的特性能够保证Hash值的不可更改性和计算准确性，能够有效的减少Hash碰撞的几率
+
+1. 都是final类型，即不可变性，保证key的不可更改性，不会存在获取hash值不同的情况
+2. 内部已重写了`equals()`、`hashCode()`等方法，遵守了HashMap内部的规范，不容易出现Hash值计算错误的情况。
+
+**如果我想要让自己的Object作为K应该怎么办呢？** 
+
+ 重写`hashCode()`和`equals()`方法 。 **重写`hashCode()`是因为需要计算存储数据的存储位置**， **重写`equals()`方法** **目的是为了保证key在哈希表中的唯一性**； 
+
+
+
+## ConcurrentHashMap线程安全的实现方式/数据结构⭐
+
+在JDK1.7版本中，ConcurrentHashMap维护了一个Segment数组，Segment这个类继承了重入锁ReentrantLock，在该类里面维护了一个 HashEntry<K,V>[] table数组，在写操作put，remove，扩容的时候，会对Segment加锁，所以仅仅影响这个Segment，不同的Segment还是可以并发的，所以解决了线程的安全问题，同时又采用了分段锁也提升了并发的效率。在JDK1.8版本中，ConcurrentHashMap摒弃了Segment的概念，而是直接用Node数组+链表+红黑树的数据结构来实现，并发控制使用Synchronized和CAS来操作，整个看起来就像是优化过且线程安全的HashMap。 
+
+详见java容器总结篇。
+
+## BlockingQueue是什么？
+
+Java.util.concurrent.BlockingQueue是一个队列，在进行检索或移除一个元素的时候，它会等待队列变为非空；当在添加一个元素时，它会等待队列中的可用空间。BlockingQueue接口是Java集合框架的一部分，主要用于实现生产者-消费者模式。我们不需要担心等待生产者有可用的空间，或消费者有可用的对象，因为它都在BlockingQueue的实现类中被处理了。Java提供了集中BlockingQueue的实现，比如ArrayBlockingQueue、LinkedBlockingQueue、PriorityBlockingQueue,、SynchronousQueue等。
+
+ ## 在 Queue 中 poll()和 remove()有什么区别？
+
+poll() 和 remove() 都是从队列中取出一个元素，但是 poll() 在获取元素失败的时候会返回空，但是 remove() 失败的时候会抛出异常。
+
+# Java 多线程
 
 ## 多线程相关概念
 
@@ -4254,23 +4542,1044 @@ JDK 1.6 引入了偏向锁和轻量级锁，从而让锁拥有了四个状态：
 ## 多线程开发良好的实践
 
 - 给线程起个有意义的名字，这样可以方便找 Bug。
-
 - 缩小同步范围，从而减少锁争用。例如对于 synchronized，应该尽量使用同步块而不是同步方法。
-
 - 多用同步工具少用 wait() 和 notify()。首先，CountDownLatch, CyclicBarrier, Semaphore 和 Exchanger 这些同步类简化了编码操作，而用 wait() 和 notify() 很难实现复杂控制流；其次，这些同步类是由最好的企业编写和维护，在后续的 JDK 中还会不断优化和完善。
-
 - 使用 BlockingQueue 实现生产者消费者问题。
-
 - 多用并发集合少用同步集合，例如应该使用 ConcurrentHashMap 而不是 Hashtable。
-
 - 使用本地变量和不可变类来保证线程安全。
-
 - 使用线程池而不是直接创建线程，这是因为创建线程代价很高，线程池可以有效地利用有限的线程来启动任务。
+
+# java并发
+
+## JMM（Java 内存模型）
+
+### 原子性（Atomictiy）
+
+原子性是指一个操作是不可中断的。即使是在多个线程一起执行的时候，一个操作一旦开始，就不会被其他线程干扰。
+
+### 可见性（Visibility）
+
+可见性是指当一个线程修改了某一个共享变量的值时，其他线程能否立即知道这个修改。
+
+缓存优化，硬件优化，指令重排，编辑器的优化。可能导致的可见性问题。
+
+### 有序性（Ordering）
+
+有序性是指：在本线程内观察，所有操作都是有序的。在一个线程观察另一个线程，所有操作都是无序的，无序是因为发生了指令重排序。在 Java 内存模型中，允许编译器和处理器对指令进行重排序，重排序过程不会影响到单线程程序的执行，却会影响到多线程并发执行的正确性。 
+
+### 指令重排
+
+在汇编语言层面，计算机使用流水线技术来执行命令，为了防止流水线中断，就需要使用指令重排。
+
+### 那些指令不能重排：Happen-Before 规则
+
+* 程序顺序原则：一个线程内保证语义的串行性。
+* volatile 规则：volatile 变量的写先于读发生，保证了这个变量的可见性。
+* 一个 unlock 操作先行发生于后面对同一个锁的 lock 操作。 
+* Thread 对象的 start() 方法调用先行发生于此线程的每一个动作。
+* 一个对象的初始化完成（构造函数执行结束）先行发生于它的 finalize() 方法的开始。
+* Thread 对象的结束先行发生于 join() 方法返回。 
+* 对线程 interrupt() 方法的调用先行发生于被中断线程的代码，因此可以通过 interrupted() 方法检测到是否有中断发生。 
+* 如果操作 A 先行发生于操作 B，操作 B 先行发生于操作 C，那么操作 A 先行发生于操作 C。  
+
+
+
+##  线程中断
+
+线程中断是一种重要的线程协作机制。线程中断并不会使线程立即退出，而是给线程发送一个通知，告知线程需要退出了。至于目标线程接到通知后如何处理是由它自己决定。这也是和stop方法的根本区别。
+
+有三个方法与线程中断有关：
+
+* interrupt() // 通知目标线程中断，也就是设置中断标志位
+* isInterrupted() // 通过检查编中断标志位判断线程是否被中断
+* interrupted() // 静态方法，判断是否被中断并清楚当前中断状态
+
+### InterruptedException
+
+通过调用一个线程的 interrupt() 来中断该线程，如果该线程处于阻塞、限期等待或者无限期等待状态，那么就会抛出 InterruptedException，从而提前结束该线程。 
+
+ 对于以下代码，在 main() 中启动一个线程之后再中断它，由于线程中调用了 Thread.sleep() 方法，因此会抛出一个 InterruptedException，从而提前结束线程，不执行之后的语句。 
+
+```java
+public class InterruptExample {
+
+    private static class MyThread1 extends Thread {
+        @Override
+        public void run() {
+            try {
+                Thread.sleep(2000);
+                System.out.println("Thread run");
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+}
+```
+
+```java
+public static void main(String[] args) throws InterruptedException {
+    Thread thread1 = new MyThread1();
+    thread1.start();
+    thread1.interrupt();
+    System.out.println("Main run");
+}
+```
+
+### interrupted()
+
+如果一个线程的 run() 方法执行一个无限循环，并且没有执行 sleep() 等会抛出 InterruptedException 的操作，那么调用线程的 interrupt() 方法就无法使线程提前结束。
+
+但是调用 interrupt() 方法会设置线程的中断标记，此时调用 interrupted() 方法会返回 true。因此可以在循环体中使用 interrupted() 方法来判断线程是否处于中断状态，从而提前结束线程。
+
+```java
+public class InterruptExample {
+
+    private static class MyThread2 extends Thread {
+        @Override
+        public void run() {
+            while (!interrupted()) {
+                // ..
+            }
+            System.out.println("Thread end");
+        }
+    }
+}
+```
+
+```java
+public static void main(String[] args) throws InterruptedException {
+    Thread thread2 = new MyThread2();
+    thread2.start();
+    thread2.interrupt();
+}
+```
+
+## 等待（wait）和通知（notify）
+
+这两个方法是Object类中的，任何对象都可以调用这两个方法。
+
+wait()方法只能在synchronized方法或synchronized块中使用（原因：wait方法会释放锁，只有在syn中才有锁）
+
+notifyAll会让所有处于等待池的线程全部进入锁池去竞争获取锁的机会
+
+notify只会随机选取一个处于等待池中的线程进入锁池去竞争获取锁的机会。
+
+**锁池EntiyList**：当一个线程需要调用调用此方法时必须获得该对象的锁，而该对象的锁被其他线程占用，该线程就需要在一个地方等待锁释放，这个地方就是锁池。（准备抢锁的池子）
+**等待池WaitSet**：调用了wait方法的线程会释放锁并进入等待池，在等待池的线程不会竞争锁。（休息的池子）
+
+值得注意的是无论是wait方法还是notify方法都需要首先获得目标对象的一个监视锁（monitor lock），得到锁后才可以执行方法。
+
+wait 和 sleep 的区别：
+
+Thread.sleep只会让出CPU ,不会释放任何资源；
+Object.wait不仅让出CPU , 还会释放已经占有的同步资源锁。
+
+## volatile
+
+JVM提供的轻量级同步机制
+含义：
+它是保证可见性的有效手段，还可以禁止指令重排序。但不能保证线程安全性
+原因：因为 Java 里面的运算并非是原子操作（处理器要么把这组操作全部执行完，中间不允许被其他操作所打断，要么这组操作不要执行。）
+如：int a = b + 1; 需要三步：取 a 的值，计算 a=b+1，然后把 a 的值写回内存
+但是！ 这三个操作处理器是不一定就会连续执行的，有可能执行了第一个操作之后，处理器就跑去执行别的操作了 。
+
+当你使用 volatile 声明一个变量时就等于告诉虚拟机这个变量很有可能被修改，为了确保这个变量被修改后，所有线程都可以看到这个改动，虚拟机就必须采用一些措施保证这个变量的可见性。
+
+volatile 关键字也可以保证数据的可见性和有序性。
+
+### volatile的作用
+
+对 long、double 提供原子性操作
+有序性：提供内存屏障，避免指令重排序
+保证可见性
+
+
+
+## synchronized
+
+synchronized的作用是实现线程间的同步。它的工作是对同步的代码加锁，使得每一次只有一个线程能进入同步块，从而保证线程间的安全性。
+
+ synchronized可以保证方法或者代码块在运行时，同一时刻只有一个方法可以进入到临界区，同时它还可以保证共享变量的内存可见性。 
+
+### synchronized 的用法
+
+* 作用于对象：对给定的对象加锁，线程进入同步代码块之前要获得给定对象的锁。
+* 作用于实例方法：相当于对当前实例加锁，线程进入同步代码前要获得当前实例的锁
+* 作用于静态方法：相当于对当前类加锁，线程进入同步代码前要获得当前类的锁
+
+### synchronized 和 volatile 的区别是什么？
+
+volatile本质是在告诉jvm当前变量在寄存器（工作内存）中的值是不确定的，需要从主存中读取； synchronized则是锁定当前变量，只有当前线程可以访问该变量，其他线程被阻塞住。
+
+volatile仅能使用在变量级别；synchronized则可以使用在变量、方法、和类级别的。
+
+volatile仅能实现变量的修改可见性，不能保证原子性；而synchronized则可以保证变量的修改可见性和原子性。
+
+volatile不会造成线程的阻塞；synchronized可能会造成线程的阻塞。
+
+volatile标记的变量不会被编译器优化；synchronized标记的变量可以被编译器优化。
+
+
+
+# JDK 并发包（JUC）
+
+## 重入锁 ReentrantLock
+
+ ReentrantLock 是 java.util.concurrent（J.U.C）包中的锁。两者性能差距不大， 完全可以使用 ReentrantLock替代 synchronized。
+
+```java
+public class LockExample {
+
+    private Lock lock = new ReentrantLock();
+
+    public void func() {
+        lock.lock();
+        try {
+            for (int i = 0; i < 10; i++) {
+                System.out.print(i + " ");
+            }
+        } finally {
+            lock.unlock(); // 确保释放锁，从而避免发生死锁。
+        }
+    }
+}
+```
+
+与 synchronized 相比，重入锁有着显式的操作过程，必须由开发人员指定何时加锁，何时释放。
+
+对于一个线程来说，连续获得两次同一把锁是允许的，但要记得释放同样的次数。这也是为什么叫重入锁的原因。
+
+### ReentrantLock的高级功能：
+
+**1.中断响应**
+
+ReentrantLock 提供了在等待锁的过程中，取消对锁的请求的方法 lockInterruptibly() 方法。可以对线程中断进行响应的锁申请动作，即在等待锁的过程中可以响应线程的中断。
+
+**2.锁申请等待限时**
+
+ReentrantLock.tryLock()方法可以实现等待超时后自动放弃锁请求。
+
+**3.公平锁**
+
+在大多数情况下，锁的申请都是非公平的。儿而重入锁可以对公平性进行控制，从而避免了线程饥饿现象。然而公平锁需要系统维护一个有序队列，成本较高，性能低下，因此非必要情况不要使用公平锁。
+
+
+
+### ReentrantLock 的实现，包含三要素：
+
+* 原子状态。原子状态使用 CAS 操作来存储当前锁的状态，判断锁是否被其他线程持有。
+* 等待队列（等待池）。
+* 阻塞原语 park(),unpark()，用来挂起和恢复线程。有关 park(),unpark() 的介绍，见下文线程阻塞工具类： LockSupport。
+
+### 重入锁的搭档：Condition
+
+ReentrantLock 和 Condition 的关系类似于synchronized 与 wait(),notify() 的关系。
+
+Condition 接口提供基本方法如下：
+
+*  void await() throws InterruptedException; 类似 wait 方法。
+*  void awaitUninterruptibly();  与 await() 方法基本相同。但不会在等待过程中响应线程中断。
+*  void signal();  与 notify()  方法类似。
+
+### 信号量（Semaphore）
+
+无论是内部锁还是重入锁，一次都只允许一个线程访问一个资源，而信号量可以制定多个线程访问同一个资源。
+
+### 读写锁（ReadWriteLock）
+
+ReadWriteLock是读写分离锁们可以有限帮助减少锁竞争，提升系统性能。
+
+如果在系统中，读操作次数远远大于写操作，则可以使用读写锁。
+
+### 倒计数器（CountDownLatch）
+
+这个工具常用来控制线程等待，可以让一个线程等待到倒计数结束再执行。
+
+```java
+public class CountDownLatchDemo implements Runnable {
+    static final CountDownLatch end = new CountDownLatch(10);
+    static final CountDownLatchDemo demo=new CountDownLatchDemo();
+    @Override
+    public void run() {
+        try {
+            //模拟检查任务
+            Thread.sleep(new Random().nextInt(10)*1000);
+            System.out.println("check complete");
+            end.countDown();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+    public static void main(String[] args) throws InterruptedException {
+        ExecutorService exec = Executors.newFixedThreadPool(10);
+        for(int i=0;i<10;i++){
+            exec.submit(demo);
+        }
+        //等待检查
+        end.await();
+        //发射火箭
+        System.out.println("Fire!");
+        exec.shutdown();
+    }
+}
+
+```
+
+countDown 方法通知计数器一个线程已经完成，倒计数减一。主线程在CountDownLatch 上等待，所有检查任务完成后继续执行。
+
+### 循环栅栏（CyclicBarrier）
+
+用来控制多个线程互相等待，只有当多个线程都到达时，这些线程才会继续执行。
+
+和 CountdownLatch 相似，都是通过维护计数器来实现的。线程执行 await() 方法之后计数器会减 1，并进行等待，直到计数器为 0，所有调用 await() 方法而在等待的线程才能继续执行。
+
+CyclicBarrier 和 CountdownLatch 的一个区别是，CyclicBarrier 的计数器通过调用 reset() 方法可以循环使用，所以它才叫做循环栅栏。
+
+CyclicBarrier 有两个构造函数，其中 parties 指示计数器的初始值，barrierAction 在所有线程都到达屏障的时候会执行一次。
+
+### 线程阻塞工具类（LockSupport）
+
+LockSupport 可以在线程内任意位置让线程阻塞，与 suspend 方法相比，弥补了由于 resume 方法发生导致线程无法继续执行的情况，和 wait 方法相比，他不需要获得锁也不会抛出中断异常。
+
+LockSupport 包含静态方法 park 可以阻塞当前线程，unpark 方法可以解开。
+
+LockSupport 使用类似信号量的机制，为每个线程准备了一个许可，如果这个许可可用，park 方法会返回，并把这个许可变为不可用，如果许可不可用，就阻塞线程。unpark 则相反。这个机制使得即使 unpark 方法操作发生在 park 之前，也可以使下一次的 park方法操作立即返回。
+
+## 线程池
+
+### 创建线程池的方式
+
+①. newFixedThreadPool(int nThreads)
+创建一个固定线程数量的线程池，每当提交一个任务就创建一个线程，直到达到线程池的最大数量，这时线程规模将不再变化，新的任务会暂存在任务队列中，待有线程空闲时便处理任务。
+
+②. newCachedThreadPool()
+创建一个可缓存的线程池，如果线程池的规模超过了处理需求，将自动回收空闲线程，而当需求增加时，则可以自动添加新线程，线程池的规模不存在任何限制。
+
+③. newSingleThreadExecutor()
+这是一个单线程的Executor，它创建单个工作线程来执行任务，如果这个线程异常结束，会创建一个新的来替代它；它的特点是能确保依照任务在队列中的顺序来串行执行。
+
+④. newScheduledThreadPool(int corePoolSize)（推荐）
+创建了一个固定长度的线程池，而且以延迟或定时的方式来执行任务，类似于Timer。他也有Single版本。
+
+### 线程池实现原理
+
+ **FixedThreadPool** ， **SingleThreadExecutor** ， **CachedThreadPool** 三个方法内部均使用了 ThreadPoolExecutor 类。
+
+```java
+  public ThreadPoolExecutor(int corePoolSize,
+                              int maximumPoolSize,
+                              long keepAliveTime,
+                              TimeUnit unit,
+                              BlockingQueue<Runnable> workQueue,
+                              ThreadFactory threadFactory,
+                              RejectedExecutionHandler handler) 
+```
+
+参数含义如下：
+
+- **`corePoolSize` :** 核心线程数线程数定义了最小可以同时运行的线程数量。
+- **`maximumPoolSize` :** 最大线程数量。
+- **`workQueue`:** 任务队列，当新任务来的时候会先判断当前运行的线程数量是否达到核心线程数，如果达到的话，新任务就会被存放在队列中。
+- **`keepAliveTime`**:当线程池中的线程数量大于 `corePoolSize` 的时候，如果这时没有新的任务提交，核心线程外的线程不会立即销毁，而是会等待，直到等待的时间超过了 `keepAliveTime`才会被回收销毁；
+- **`unit`** : `keepAliveTime` 参数的时间单位。
+- **`threadFactory`** :线程工厂，用于创建线程，一般用默认即可。
+- **`handler`** :拒绝策略。当任务太多来不及处理时，如何拒绝任务。
+
+这里给出 ThreadPoolExecutor 的核心调度方法 execute() 方法：
+
+```java
+ public void execute(Runnable command) {
+        if (command == null)
+            throw new NullPointerException();
+     		//保存的线程池当前的一些状态信息
+    		int c = ctl.get();
+            if (workerCountOf(c) < corePoolSize) {
+                if (addWorker(command, true))
+                    return;
+                c = ctl.get();
+            }
+            if (isRunning(c) && workQueue.offer(command)) {
+                int recheck = ctl.get();
+                //如果再次检查线程池的状态不在运行，那就移除请求，然后采取拒绝策略
+                if (! isRunning(recheck) && remove(command))
+                    reject(command);
+                 // 如果线程池在运行，并且当前线程池为空就新创建一个线程并执行。
+                else if (workerCountOf(recheck) == 0)
+                    addWorker(null, false);
+            }
+     		//如果不为空就直接添加执行
+            else if (!addWorker(command, false))
+                reject(command);
+        }
+```
+
+1. 如果 workerCountOf(c) 函数取得的线程池的线程总数小于 corePoolSize 核心线程数时，将任务通过 addWorker(command, true) 直接调度执行。
+2. 否则，会在 workQueue.offer(command) 准备进入等待队列，如果进入成功就等待。
+3. 如果进入等待队列失败，就判断最大线程池是否满，如果没有就直接把任务提交给线程池，如果满了就执行拒绝策略。
+
+addWorker() 的第二个参数true表示核心线程数为限制，false 表示最大线程数为限制。
+
+### 拒绝策略
+
+如果当前同时运行的线程数量达到最大线程数量并且队列也已经被放满了任时，`ThreadPoolTaskExecutor` 定义一些策略:
+
+- **`ThreadPoolExecutor.AbortPolicy`**：抛出 `RejectedExecutionException`来拒绝新任务的处理。
+- **`ThreadPoolExecutor.CallerRunsPolicy`**：调用执行自己的线程运行任务。您不会任务请求。但是这种策略会降低对于新任务提交速度，影响程序的整体性能。另外，这个策略喜欢增加队列容量。如果您的应用程序可以承受此延迟并且你不能任务丢弃任何一个任务请求的话，你可以选择这个策略。
+- **`ThreadPoolExecutor.DiscardPolicy`：** 直接丢弃新进来无法处理的任务。
+- **`ThreadPoolExecutor.DiscardOldestPolicy`：** 此策略将丢弃最早的未处理的任务请求。
+
+
+### ThreadFactory
+
+自定义线程创建，ThreadFactory 是一个接口，只有一个创建线程的方法，我们可以通过这个自定义线程池。
+
+下面这个例子就是自定义线程池：
+
+```java
+public static void main(String[] args) throws InterruptedException {
+		MyTask task = new MyTask();
+		ExecutorService es = new ThreadPoolExecutor(5, 5,
+                0L, TimeUnit.MILLISECONDS,
+                new SynchronousQueue<Runnable>(),
+                new ThreadFactory(){
+					@Override
+					public Thread newThread(Runnable r) {
+						Thread t= new Thread(r);
+						t.setDaemon(true);
+						System.out.println("create "+t);
+						return t;
+					}
+				}
+               );
+		for (int i = 0; i < 5; i++) {
+			es.submit(task);
+		}
+		Thread.sleep(2000);
+	}
+}
+```
+
+
+
+### ForkJoin 框架
+
+ ForkJoin 使用 ForkJoinPool 来启动，它是一个特殊的线程池，线程数量取决于 CPU 核数。 
+
+ ForkJoinPool 实现了工作窃取算法来提高 CPU 的利用率。每个线程都维护了一个双端队列，用来存储需要执行的任务。工作窃取算法允许空闲的线程从其它线程的双端队列中窃取一个任务来执行。窃取的任务必须是最晚的任务，避免和队列所属线程发生竞争。 
+
+
+
+## 并发集合
+
+JUC包中包含了并发集合类有：ConcurrentHashMap,CopyOnWriteArrayList,ConcurrentLinkedQueue,
+
+BlockingQueue,ConcurrentSkipListMap.
+
+ 
+
+### CAS（乐观锁）
+
+CAS(Compare And Swap)，比较交换。与锁相比，使用 CAS 会使程序看起来更复杂一些，但天生避免死锁，线程间的互相影响也小于锁的方式，拥有比锁更好的性能。
+
+CAS 的算法过程：它包含三个参数V,E,N，其中 V(value)表示要更新的变量，E(expect)表示预期值，N(new)表示新值。仅当 V 值 等于 E 时，才会将 V 设置成 N，如果V 和 E 不同，说明已经有其他线程做了更新，则当前线程什么都不做。最后，CAS 返回当前 V 的真实值。
+
+CAS 是抱着乐观的态度进行的，他总认为自己可以完成操作，当多个线程同时使用 CAS 操作以操作一个变量时，只有一个会胜出，其余会失败。失败的线程不会被挂起，仅是被告知失败，允许再次尝试或者放弃操作。基于这样的原理，CAS 操作即使没有锁也可以发现各个线程之间的干扰，进行恰当的处理。
+
+### 高效读写的队列：ConcurrentLinkedQueue
+
+ConcurrentLinkedQueue 这个队列使用链表作为其数据结构．ConcurrentLinkedQueue 应该算是在高并发环境中性能最好的队列了。它之所有能有很好的性能，是因为其内部复杂的实现。
+
+ConcurrentLinkedQueue 内部代码我们就不分析了，大家知道 ConcurrentLinkedQueue 主要使用 CAS 非阻塞算法来实现线程安全就好了。
+
+ConcurrentLinkedQueue 适合在对性能要求相对较高，同时对队列的读写存在多个线程同时进行的场景，即如果对队列加锁的成本较高则适合使用无锁的 ConcurrentLinkedQueue 来替代。
+
+### 高效读取：CopyOnWriteArrayList
+
+读取完全不加锁，写入也不会阻塞读取，当写入时进行一次自我赋值进行操作，不修改原本的内容，详解请看 Java 容器分析。
+
+### 数据共享通道：BlockingQueue
+
+ Java 提供的线程安全的 Queue 可以分为**阻塞队列**和**非阻塞队列**，其中阻塞队列的典型例子就是 BlockingQueue。
+
+ 阻塞队列（BlockingQueue）被广泛使用在“生产者-消费者”问题中，其原因是 BlockingQueue 提供了可阻塞的插入和移除的方法。当队列容器已满，生产者线程会被阻塞，直到队列未满；当队列容器为空时，消费者线程会被阻塞，直至队列非空时为止。 
+
+BlockingQueue是一个接口而不是一个具体实现，主要实现包括： ArrayBlockingQueue、LinkedBlockingQueue。
+
+## 锁优化
+
+### 提高锁性能的几点建议
+
+1.减少锁持有时间，只在必要的时候进行同步
+
+2.减小锁粒度，就是缩小锁定对象的范围，降低锁冲突的可能性。
+
+3.在读多写少的场合使用读写分离锁替换独占锁
+
+4.锁分离
+
+5.锁粗化， 如果一系列的连续操作都对同一个对象反复加锁和解锁，频繁的加锁操作就会导致性能损耗。 锁粗化就是把加锁的范围扩展（粗化）到整个操作序列的外部。
+
+
+
+### JVM对锁的优化
+
+这里的锁优化主要是指 JVM 对 synchronized 的优化。 
+
+#### 偏向锁
+
+偏向锁的思想是偏向于让第一个获取锁对象的线程，这个线程在之后获取该锁就不再需要进行同步操作，甚至连 CAS 操作也不再需要。
+
+当锁对象第一次被线程获得的时候，进入偏向状态，标记为 1 01。同时使用 CAS 操作将线程 ID 记录到 Mark Word 中，如果 CAS 操作成功，这个线程以后每次进入这个锁相关的同步块就不需要再进行任何同步操作。
+
+当有另外一个线程去尝试获取这个锁对象时，偏向状态就宣告结束，此时撤销偏向（Revoke Bias）后恢复到未锁定状态或者轻量级锁状态。如果锁竞争比较大的情况就不要使用了。
+
+#### 轻量级锁
+
+如果偏向锁失败，虚拟机不会立即挂起线程，还会使用一种轻量级锁的优化手段， 轻量级锁是相对于传统的重量级锁而言，它使用 CAS 操作来避免重量级锁使用互斥量的开销。对于绝大部分的锁，在整个同步周期内都是不存在竞争的，因此也就不需要都使用互斥量进行同步，可以先采用 CAS 操作进行同步，如果 CAS 失败了再改用互斥量进行同步。 
+
+ 如果 CAS 操作失败了，虚拟机首先会检查对象的 Mark Word 是否指向当前线程的虚拟机栈，如果是的话说明当前线程已经拥有了这个锁对象，那就可以直接进入同步块继续执行，否则说明这个锁对象已经被其他线程线程抢占了。如果有两条以上的线程争用同一个锁，那轻量级锁就不再有效，要膨胀为重量级锁。 
+
+#### 自旋锁
+
+自旋锁的思想是让一个线程在请求一个共享数据的锁时执行忙循环（自旋）一段时间，如果在这段时间内能获得锁，就可以避免进入阻塞状态。
+
+自旋锁虽然能避免进入阻塞状态从而减少开销，但是它需要进行忙循环操作占用 CPU 时间，它只适用于共享数据的锁定状态很短的场景。
+
+#### 锁消除
+
+锁消除是指对于被检测出不可能存在竞争的共享数据的锁进行消除。
+
+锁消除主要是通过逃逸分析来支持，如果堆上的共享数据不可能逃逸出去被其它线程访问到，那么就可以把它们当成私有数据对待，也就可以将它们的锁进行消除。
+
+### ThreadLocal （待办）
+
+### 死锁
+
+多个线程同时被阻塞，它们中的一个或者全部都在等待某个资源被释放。由于线程被无限期地阻塞，因此程序不可能正常终止。 
+
+**如何避免线程死锁?**
+
+**破坏互斥条件**
+
+这个条件我们没有办法破坏，因为我们用锁本来就是想让他们互斥的（临界资源需要互斥访问）。
+
+**破坏请求与保持条件**
+
+一次性申请所有的资源。
+
+**破坏不剥夺条件**
+
+占用部分资源的线程进一步申请其他资源时，如果申请不到，可以主动释放它占有的资源。
+
+**破坏循环等待条件**
+
+靠按序申请资源来预防。按某一顺序申请资源，释放资源则反序释放。破坏循环等待条件。
+
+
 
 # Java 虚拟机
 
+## Java内存区域
 
-本文大部分内容参考   **周志明《深入理解 Java 虚拟机》**  ，想要深入学习的话请看原书。
+### 说一下 JVM 的主要组成部分及其作用？
+
+![img](java.assets/20200103213149526.png)
+
+JVM包含两个子系统和两个组件，两个子系统为Class loader(类装载)、Execution engine(执行引擎)；两个组件为Runtime data area(运行时数据区)、Native Interface(本地接口)。
+
+- Class loader(类装载)：根据给定的全限定名类名(如：java.lang.Object)来装载class文件到Runtime data area中的method area。
+- Execution engine（执行引擎）：执行classes中的指令。
+- Native Interface(本地接口)：与native libraries交互，是其它编程语言交互的接口。
+- Runtime data area(运行时数据区域)：这就是我们常说的JVM的内存。
+
+**作用** ：首先通过编译器把 Java 代码转换成字节码，类加载器（ClassLoader）再把字节码加载到内存中，将其放在运行时数据区（Runtime data area）的方法区内，而字节码文件只是 JVM 的一套指令集规范，并不能直接交给底层操作系统去执行，因此需要特定的命令解析器执行引擎（Execution Engine），将字节码翻译成底层系统指令，再交由 CPU 去执行，而这个过程中需要调用其他语言的本地库接口（Native Interface）来实现整个程序的功能。
+
+**下面是Java程序运行机制详细说明**
+
+Java程序运行机制步骤
+
+- 首先利用IDE集成开发工具编写Java源代码，源文件的后缀为.java；
+- 再利用编译器(javac命令)将源代码编译成字节码文件，字节码文件的后缀名为.class；
+- 运行字节码的工作是由解释器(java命令)来完成的。
+
+![在这里插入图片描述](java.assets/2020031416414486.jpeg)
+
+从上图可以看，java文件通过编译器变成了.class文件，接下来类加载器又将这些.class文件加载到JVM中。
+其实可以一句话来解释：类的加载指的是将类的.class文件中的二进制数据读入到内存中，将其放在运行时数据区的方法区内，然后在堆区创建一个 java.lang.Class对象，用来封装类在方法区内的数据结构。
+
+### 说一下 JVM 运行时数据区
+
+**Java 虚拟机在执行 Java 程序的过程中会把它所管理的内存区域划分为若干个不同的数据区域**。这些区域都有各自的用途，以及创建和销毁的时间，有些区域随着虚拟机进程的启动而存在，有些区域则是依赖线程的启动和结束而建立和销毁。Java 虚拟机所管理的内存被划分为如下几个区域：
+
+![img](java.assets/20200103213220764.png)
+
+不同虚拟机的运行时数据区可能略微有所不同，但都会遵从 Java 虚拟机规范， Java 虚拟机规范规定的区域分为以下 5 个部分：
+
+- 程序计数器（Program Counter Register）：当前线程所执行的字节码的行号指示器，字节码解析器的工作是通过改变这个计数器的值，来选取下一条需要执行的字节码指令，分支、循环、跳转、异常处理、线程恢复等基础功能，都需要依赖这个计数器来完成；
+- Java 虚拟机栈（Java Virtual Machine Stacks）：用于存储局部变量表、操作数栈、动态链接、方法出口等信息。每个方法在执行的同时都会创建一个栈帧`Stack Frame`用于存储局部变量表，操作数栈，动态链接，方法出口等信息；栈中的栈帧随着方法的进入和退出有条不紊的执行着出栈和入栈的操作。
+- 本地方法栈（Native Method Stack）：与虚拟机栈的作用是一样的，只不过虚拟机栈是服务 Java 方法的，而本地方法栈是为虚拟机调用 Native 方法服务的；
+- Java 堆（Java Heap）：Java 虚拟机中内存最大的一块，是被所有线程共享的，几乎所有的对象实例都在这里分配内存，通过-Xmx和-Xms可以控制大小；
+- 方法区（Methed Area）：是线程之间共享的区域，用于存储已被虚拟机加载的类信息、常量、静态变量、即时编译后的代码等数据，也可以称为“永久代”，垃圾回收效果一般。
+
+### 深拷贝和浅拷贝
+
+浅拷贝（shallowCopy）只是增加了一个指针指向已存在的内存地址，
+
+深拷贝（deepCopy）是增加了一个指针并且申请了一个新的内存，使这个增加的指针指向这个新的内存，
+
+使用深拷贝的情况下，释放内存的时候不会因为出现浅拷贝时释放同一个内存的错误。
+
+浅复制：仅仅是指向被复制的内存地址，如果原地址发生改变，那么浅复制出来的对象也会相应的改变。
+
+深复制：在计算机中开辟一块**新的内存地址**用于存放复制的对象。
+
+### 说一下堆栈的区别？
+
+物理地址
+
+堆的物理地址分配对对象是不连续的。因此性能慢些。在GC的时候也要考虑到不连续的分配，所以有各种算法。比如，标记-消除，复制，标记-压缩，分代（即新生代使用复制算法，老年代使用标记——压缩）
+
+栈使用的是数据结构中的栈，先进后出的原则，物理地址分配是连续的。所以性能快。
+
+内存分别
+
+堆因为是不连续的，所以分配的内存是在`运行期`确认的，因此大小不固定。一般堆大小远远大于栈。
+
+栈是连续的，所以分配的内存大小要在`编译期`就确认，大小是固定的。
+
+存放的内容
+
+堆存放的是对象的实例和数组。因此该区更关注的是数据的存储
+
+栈存放：局部变量，操作数栈，返回结果。该区更关注的是程序方法的执行。
+
+PS：
+
+1. 静态变量放在方法区
+2. 静态的对象还是放在堆。
+
+程序的可见度
+
+堆对于整个应用程序都是共享、可见的。
+
+栈只对于线程是可见的。所以也是线程私有。他的生命周期和线程相同。
+
+### 说一下对象创建过程中的内存分配
+
+一般情况下我们通过new指令来创建对象，当虚拟机遇到一条new指令的时候，会去检查这个指令的参数是否能在常量池中定位到某个类的符号索引，并且检查这个符号引用代表的类是否已经被加载，解析和初始化。 如果没有，那么会执行类加载过程。
+通过执行类的加载，验证，准备，解析，初始化步骤，完成了类的加载，这个时候会为该对象进行内存分配，也就是一把块确定大小的内存从Java堆中划分出来，在分配的内存上完成对象的创建工作。
+
+对象的内存分配有两种方式，即**指针碰撞**和**空闲列表方式**。
+
+指针碰撞方式：
+
+假设Java堆中的内存绝对规整的，用过的内存在一边, 未使用的内存在另一边，中间有一个指示指针，那么所有的内存分配就是把那个指针向空闲空间那边挪动一段与对象大小相等的距离。‘
+
+空闲列表方式：
+
+如果Java堆内存中不是规整的，已使用和未使用的内存相互交错，那么虚拟机就必须维护一个列表用来记录哪块内存是可用的，在分配的时候找到一块足够大的空间分配对象实例，并且需要更新列表上的记录。
+需要注意的是，Java堆内存是否规整是由所使用的垃圾收集器是否拥有压缩整理功能来决定的。
+
+那么内存的分配如何保证线程安全呢？
+
+1、对分配内存空间的动作进行同步处理，通过“CAS + 失败重试”的方式保证更新指针操作的原子性
+
+2、把分配内存的动作按照线程划分在不同的空间之中，即给每个线程都预先分配一小段的内存，称为本地线程分配缓存 (TLAB), 只有TLAB用完并分配新的TLAB时，才需要进行同步锁定。虚拟机是否使用TLAB,可以通过-XX: +/-UserTLAB参数来设定
+
+### 对象被访问的时候是怎么被找到的？
+
+通过对栈内存和堆内存的介绍，我们知道了当创建一个对象的时候，在栈内存中会有一个引用变量，指向堆内存中的某个具体的对象实例。
+
+Java虚拟机规范中并没有规定这个引用变量应该以何种方式去定位和访问堆内存中的具体对象。目前常见的对象访问方式有两种，即**句柄访问方式**和**直接指针访问**方式，分别介绍如下。
+
+句柄访问方式：
+在JVM的堆内存中划分出一块内存来作为句柄池，引用变量中存储的就是对象的句柄地址，句柄中包含了对象实例数据与类型数据各自的具体地址信息。在内存垃圾收集之后，对象会移动，但是引用reference中存储的是稳定的句柄地址，但是句柄地址方式不直接，访问速度较慢.
+
+直接指针访问方式：
+引用变量中存储的就是对象的直接地址，通过指针直接访问对象。直接指针的访问方式节省了一次指针定位的时间开销，速度较快。Sun HotSpot使用了直接指针方式进行对象的访问。
+
+## HotSpot虚拟机对象探秘
+
+### 对象的创建
+
+说到对象的创建，首先让我们看看 `Java` 中提供的几种对象创建方式：
+
+| Header                             | 解释             |
+| ---------------------------------- | ---------------- |
+| 使用new关键字                      | 调用了构造函数   |
+| 使用Class的newInstance方法         | 调用了构造函数   |
+| 使用Constructor类的newInstance方法 | 调用了构造函数   |
+| 使用clone方法                      | 没有调用构造函数 |
+| 使用反序列化                       | 没有调用构造函数 |
+
+下面是对象创建的主要流程:
+
+![img](java.assets/20200103213726902.png)
+
+虚拟机遇到一条new指令时，先检查常量池是否已经加载相应的类，如果没有，必须先执行相应的类加载。类加载通过后，接下来分配内存。若Java堆中内存是绝对规整的，使用**“指针碰撞“**方式分配内存；如果不是规整的，就从空闲列表中分配，叫做**”空闲列表“**方式。划分内存时还需要考虑一个问题-并发，也有两种方式: CAS同步处理，或者本地线程分配缓冲(Thread Local Allocation Buffer, TLAB)。然后内存空间初始化操作，接着是做一些必要的对象设置(元信息、哈希码…)，最后执行``方法。
+
+### 为对象分配内存
+
+类加载完成后，接着会在Java堆中划分一块内存分配给对象。内存分配根据Java堆是否规整，有两种方式：
+
+- 指针碰撞：如果Java堆的内存是规整，即所有用过的内存放在一边，而空闲的的放在另一边。分配内存时将位于中间的指针指示器向空闲的内存移动一段与对象大小相等的距离，这样便完成分配内存工作。
+- 空闲列表：如果Java堆的内存不是规整的，则需要由虚拟机维护一个列表来记录那些内存是可用的，这样在分配的时候可以从列表中查询到足够大的内存分配给对象，并在分配后更新列表记录。
+
+选择哪种分配方式是由 Java 堆是否规整来决定的，而 Java 堆是否规整又由所采用的垃圾收集器是否带有压缩整理功能决定。
+
+![内存分配的两种方式](java.assets/20200103213812259.png)
+
+### 处理并发安全问题
+
+对象的创建在虚拟机中是一个非常频繁的行为，哪怕只是修改一个指针所指向的位置，在并发情况下也是不安全的，可能出现正在给对象 A 分配内存，指针还没来得及修改，对象 B 又同时使用了原来的指针来分配内存的情况。解决这个问题有两种方案：
+
+- 对分配内存空间的动作进行同步处理（采用 CAS + 失败重试来保障更新操作的原子性）；
+- 把内存分配的动作按照线程划分在不同的空间之中进行，即每个线程在 Java 堆中预先分配一小块内存，称为本地线程分配缓冲（Thread Local Allocation Buffer, TLAB）。哪个线程要分配内存，就在哪个线程的 TLAB 上分配。只有 TLAB 用完并分配新的 TLAB 时，才需要同步锁。通过-XX:+/-UserTLAB参数来设定虚拟机是否使用TLAB。
+
+![内存分配时保证线程安全的两种方式](java.assets/20200103213833317.png)
+
+### 对象的访问定位
+
+`Java`程序需要通过 `JVM` 栈上的引用访问堆中的具体对象。对象的访问方式取决于 `JVM` 虚拟机的实现。目前主流的访问方式有 **句柄** 和 **直接指针** 两种方式。
+
+> **指针：** 指向对象，代表一个对象在内存中的起始地址。
+>
+> **句柄：** 可以理解为指向指针的指针，维护着对象的指针。句柄不直接指向对象，而是指向对象的指针（句柄不发生变化，指向固定内存地址），再由对象的指针指向对象的真实内存地址。
+
+#### 句柄访问
+
+`Java`堆中划分出一块内存来作为**句柄池**，引用中存储对象的**句柄地址**，而句柄中包含了**对象实例数据**与**对象类型数据**各自的**具体地址**信息，具体构造如下图所示：
+
+![img](java.assets/20200103213926911.png)
+
+**优势**：引用中存储的是**稳定**的句柄地址，在对象被移动（垃圾收集时移动对象是非常普遍的行为）时只会改变**句柄中**的**实例数据指针**，而**引用**本身不需要修改。
+
+#### 直接指针
+
+如果使用**直接指针**访问，**引用** 中存储的直接就是**对象地址**，那么`Java`堆对象内部的布局中就必须考虑如何放置访问**类型数据**的相关信息。
+
+![img](java.assets/20200103213948956.png)
+
+**优势**：速度更**快**，节省了**一次指针定位**的时间开销。由于对象的访问在`Java`中非常频繁，因此这类开销积少成多后也是非常可观的执行成本。HotSpot 中采用的就是这种方式。
+
+## 内存溢出异常
+
+### Java会存在内存泄漏吗？请简单描述
+
+内存泄漏是指不再被使用的对象或者变量一直被占据在内存中。理论上来说，Java是有GC垃圾回收机制的，也就是说，不再被使用的对象，会被GC自动回收掉，自动从内存中清除。
+
+但是，即使这样，Java也还是存在着内存泄漏的情况，java导致内存泄露的原因很明确：长生命周期的对象持有短生命周期对象的引用就很可能发生内存泄露，尽管短生命周期对象已经不再需要，但是因为长生命周期对象持有它的引用而导致不能被回收，这就是java中内存泄露的发生场景。
+
+## 垃圾收集器
+
+### 简述Java垃圾回收机制
+
+在java中，程序员是不需要显示的去释放一个对象的内存的，而是由虚拟机自行执行。在JVM中，有一个垃圾回收线程，它是低优先级的，在正常情况下是不会执行的，只有在虚拟机空闲或者当前堆内存不足时，才会触发执行，扫面那些没有被任何引用的对象，并将它们添加到要回收的集合中，进行回收。
+
+JVM内存可以分为堆内存和非堆内存。堆内存分为年轻代和老年代，年轻代又可以进一步划分为一个Eden(伊甸)区和两个Survivor(幸存)区
+
+<img src="java.assets/image-20210315232859107.png" alt="image-20210315232859107" style="zoom:67%;" />
+
+**JVM堆内存的分配：**
+
+JVM初始分配的堆内存由-Xms指定，默认是物理内存的1/64.JVM最大分配的堆内存由-Xmx指定，默认是物理内存的1/4.
+
+默认空余堆内存小于40%时，JVM就会增大堆内存直到-Xmx的最大限制。空余堆内存大于70%时，JVM会减少堆内存知道-Xms的最小限制。因此我们一般设置-Xms和-Xmx相等以避免在每次GC后调整堆的大小。
+
+通过参数-Xmn2G可以设置年轻代大小为2G。通过-XX：SurvivorRatio可以设置年轻代中Eden区与Survivor区的比值，设置为8，则表示年轻代中Eden区与一块Survivor的比例为8:1.注意年轻代中有两块Survivor区域。
+
+**JVM非堆内存的分配**
+
+JVM使用-XX：PermSize设置非堆内存初始值，默认是物理内存的1/64.由-XX：MaxPermSize设置最大非堆内存的大小，默认是物理内存的1/4.
+
+**堆内存上对象的分配与回收：**
+
+我们创建的对象会优先在Eden分配，如果是大对象（很长的字符串数组）则可以直接进入老年代。虚拟机提供一个 -XX:PretenureSizeThreshold参数，令大于这个参数值的对象直接在老年代中分配，避免在Eden区和两个Survivor 区发生大量的内存拷贝。
+
+另外，长期存活的对象将进入老年代，每一次MinorGC （年轻代GC） , 对象年龄就大一岁，默认15岁晋升到老年代，通过
+-XX:MaxTenuringThreshold 设置晋升年龄，
+
+
+
+### GC是什么？为什么要GC
+
+GC 是垃圾收集的意思（Gabage Collection）,内存处理是编程人员容易出现问题的地方，忘记或者错误的内存
+
+回收会导致程序或系统的不稳定甚至崩溃，Java 提供的 GC 功能可以自动监测对象是否超过作用域从而达到自动
+
+回收内存的目的，Java 语言没有提供释放已分配内存的显示操作方法。
+
+### 垃圾回收的优点和原理。并考虑2种回收机制
+
+java语言最显著的特点就是引入了垃圾回收机制，它使java程序员在编写程序时不再考虑内存管理的问题。
+
+由于有这个垃圾回收机制，java中的对象不再有“作用域”的概念，只有引用的对象才有“作用域”。
+
+垃圾回收机制有效的防止了内存泄露，可以有效的使用可使用的内存。
+
+垃圾回收器通常作为一个单独的低级别的线程运行，在不可预知的情况下对内存堆中已经死亡的或很长时间没有用过的对象进行清除和回收。
+
+程序员不能实时的对某个对象或所有对象调用垃圾回收器进行垃圾回收。
+
+垃圾回收有分代复制垃圾回收、标记垃圾回收、增量垃圾回收。
+
+### 垃圾回收器的基本原理是什么？垃圾回收器可以马上回收内存吗？有什么办法主动通知虚拟机进行垃圾回收？
+
+对于GC来说，当程序员创建对象时，GC就开始监控这个对象的地址、大小以及使用情况。
+
+通常，GC采用有向图的方式记录和管理堆(heap)中的所有对象。通过这种方式确定哪些对象是"可达的"，哪些对象是"不可达的"。当GC确定一些对象为"不可达"时，GC就有责任回收这些内存空间。
+
+可以。程序员可以手动执行System.gc()，通知GC运行，但是Java语言规范并不保证GC一定会执行。
+
+### Java 中都有哪些引用类型？
+
+- 强引用：发生 gc 的时候不会被回收。
+- 软引用：有用但不是必须的对象，在发生内存溢出之前会被回收。
+- 弱引用：有用但不是必须的对象，在下一次GC时会被回收。
+- 虚引用（幽灵引用/幻影引用）：无法通过虚引用获得对象，用 PhantomReference 实现虚引用，虚引用的用途是在 gc 时返回一个通知。
+
+### 怎么判断对象是否可以被回收？
+
+垃圾收集器在做垃圾回收的时候，首先需要判定的就是哪些内存是需要被回收的，哪些对象是「存活」的，是不可以被回收的；哪些对象已经「死掉」了，需要被回收。
+
+一般有两种方法来判断：
+
+- 引用计数器法：为每个对象创建一个引用计数，有对象引用时计数器 +1，引用被释放时计数 -1，当计数器为 0 时就可以被回收。它有一个缺点不能解决循环引用的问题；
+- 可达性分析算法：从 GC Roots 开始向下搜索，搜索所走过的路径称为引用链。当一个对象到 GC Roots 没有任何引用链相连时，则证明此对象是可以被回收的。
+
+### 在Java中，对象什么时候可以被垃圾回收
+
+当对象对当前使用这个对象的应用程序变得不可触及的时候，这个对象就可以被回收了。
+垃圾回收不会发生在永久代，如果永久代满了或者是超过了临界值，会触发完全垃圾回收(Full GC)。如果你仔细查看垃圾收集器的输出信息，就会发现永久代也是被回收的。这就是为什么正确的永久代大小对避免Full GC是非常重要的原因。
+
+### JVM中的永久代中会发生垃圾回收吗
+
+垃圾回收不会发生在永久代，如果永久代满了或者是超过了临界值，会触发完全垃圾回收(Full GC)。如果你仔细查看垃圾收集器的输出信息，就会发现永久代也是被回收的。这就是为什么正确的永久代大小对避免Full GC是非常重要的原因。请参考下Java8：从永久代到元数据区
+(译者注：Java8中已经移除了永久代，新加了一个叫做元数据区的native内存区)
+
+### 说一下 JVM 有哪些垃圾回收算法？
+
+- 标记-清除算法：标记无用对象，然后进行清除回收。缺点：效率不高，无法清除垃圾碎片。
+- 复制算法：按照容量划分二个大小相等的内存区域，当一块用完的时候将活着的对象复制到另一块上，然后再把已使用的内存空间一次清理掉。缺点：内存使用率不高，只有原来的一半。
+- 标记-整理算法：标记无用对象，让所有存活的对象都向一端移动，然后直接清除掉端边界以外的内存。
+- 分代算法：根据对象存活周期的不同将内存划分为几块，一般是新生代和老年代，新生代基本采用复制算法，老年代采用标记整理算法。
+
+#### 标记-清除算法
+
+标记无用对象，然后进行清除回收。
+
+标记-清除算法（Mark-Sweep）是一种常见的基础垃圾收集算法，它将垃圾收集分为两个阶段：
+
+- 标记阶段：标记出可以回收的对象。
+- 清除阶段：回收被标记的对象所占用的空间。
+
+标记-清除算法之所以是基础的，是因为后面讲到的垃圾收集算法都是在此算法的基础上进行改进的。
+
+**优点**：实现简单，不需要对象进行移动。
+
+**缺点**：标记、清除过程效率低，产生大量不连续的内存碎片，提高了垃圾回收的频率。
+
+标记-清除算法的执行的过程如下图所示
+
+![img](java.assets/20200104115917418.png)
+
+#### 复制算法
+
+为了解决标记-清除算法的效率不高的问题，产生了复制算法。它把内存空间划为两个相等的区域，每次只使用其中一个区域。垃圾收集时，遍历当前使用的区域，把存活对象复制到另外一个区域中，最后将当前使用的区域的可回收的对象进行回收。
+
+**优点**：按顺序分配内存即可，实现简单、运行高效，不用考虑内存碎片。
+
+**缺点**：可用的内存大小缩小为原来的一半，对象存活率高时会频繁进行复制。
+
+复制算法的执行过程如下图所示
+
+![img](java.assets/20200104115940771.png)
+
+#### 标记-整理算法
+
+在新生代中可以使用复制算法，但是在老年代就不能选择复制算法了，因为老年代的对象存活率会较高，这样会有较多的复制操作，导致效率变低。标记-清除算法可以应用在老年代中，但是它效率不高，在内存回收后容易产生大量内存碎片。因此就出现了一种标记-整理算法（Mark-Compact）算法，与标记-整理算法不同的是，在标记可回收的对象后将所有存活的对象压缩到内存的一端，使他们紧凑的排列在一起，然后对端边界以外的内存进行回收。回收后，已用和未用的内存都各自一边。
+
+**优点**：解决了标记-清理算法存在的内存碎片问题。
+
+**缺点**：仍需要进行局部对象移动，一定程度上降低了效率。
+
+标记-整理算法的执行过程如下图所示
+
+![img](java.assets/20200104120006513.png)
+
+#### 分代收集算法
+
+当前商业虚拟机都采用**分代收集**的垃圾收集算法。分代收集算法，顾名思义是根据对象的**存活周期**将内存划分为几块。一般包括**年轻代**、**老年代** 和 **永久代**，如图所示：
+
+![img](java.assets/20200104120031885.png)
+
+### 说一下 JVM 有哪些垃圾回收器？
+
+如果说垃圾收集算法是内存回收的方法论，那么垃圾收集器就是内存回收的具体实现。下图展示了7种作用于不同分代的收集器，其中用于回收新生代的收集器包括Serial、PraNew、Parallel Scavenge，回收老年代的收集器包括Serial Old、Parallel Old、CMS，还有用于回收整个Java堆的G1收集器。不同收集器之间的连线表示它们可以搭配使用。
+
+![img](java.assets/20200104120144820.png)
+
+- Serial收集器（复制算法): 新生代单线程收集器，标记和清理都是单线程，优点是简单高效；
+- ParNew收集器 (复制算法): 新生代收并行集器，实际上是Serial收集器的多线程版本，在多核CPU环境下有着比Serial更好的表现；
+- Parallel Scavenge收集器 (复制算法): 新生代并行收集器，追求高吞吐量，高效利用 CPU。吞吐量 = 用户线程时间/(用户线程时间+GC线程时间)，高吞吐量可以高效率的利用CPU时间，尽快完成程序的运算任务，适合后台应用等对交互相应要求不高的场景；
+- Serial Old收集器 (标记-整理算法): 老年代单线程收集器，Serial收集器的老年代版本；
+- Parallel Old收集器 (标记-整理算法)： 老年代并行收集器，吞吐量优先，Parallel Scavenge收集器的老年代版本；
+- CMS(Concurrent Mark Sweep)收集器（标记-清除算法）： 老年代并行收集器，以获取最短回收停顿时间为目标的收集器，具有高并发、低停顿的特点，追求最短GC回收停顿时间。
+- G1(Garbage First)收集器 (标记-整理算法)： Java堆并行收集器，G1收集器是JDK1.7提供的一个新收集器，G1收集器基于“标记-整理”算法实现，也就是说不会产生内存碎片。此外，G1收集器不同于之前的收集器的一个重要特点是：G1回收的范围是整个Java堆(包括新生代，老年代)，而前六种收集器回收的范围仅限于新生代或老年代。
+
+### 详细介绍一下 CMS 垃圾回收器？
+
+CMS 是英文 Concurrent Mark-Sweep 的简称，是以牺牲吞吐量为代价来获得最短回收停顿时间的垃圾回收器。对于要求服务器响应速度的应用上，这种垃圾回收器非常适合。在启动 JVM 的参数加上“-XX:+UseConcMarkSweepGC”来指定使用 CMS 垃圾回收器。
+
+CMS 使用的是标记-清除的算法实现的，所以在 gc 的时候回产生大量的内存碎片，当剩余内存不能满足程序运行要求时，系统将会出现 Concurrent Mode Failure，临时 CMS 会采用 Serial Old 回收器进行垃圾清除，此时的性能将会被降低。
+
+CMS的垃圾收集过程分为4步：
+
+1、初始标记：需要“Stop the World”，初始标记仅仅只是标记一下GC Root能直接关联到的对象，速度很快
+2、并发标记：是主要标记过程，这个标记过程是和用户线程并发执行的
+3、重新标记：需要“Stop the World”，为了修正并发标记期间因用户程序继续远作而导致标记产生变动的那一部分对象的标记记录（停	  顿时间比初始标记长，但比并发标记短得多）
+4、并发清除：和用户线程并发执行的，基于标记结果来清理对象.
+
+<img src="java.assets/image-20210315235141403.png" alt="image-20210315235141403" style="zoom:67%;" />
+
+
+
+### 新生代垃圾回收器和老年代垃圾回收器都有哪些？有什么区别？
+
+- 新生代回收器：Serial、ParNew、Parallel Scavenge
+- 老年代回收器：Serial Old、Parallel Old、CMS
+- 整堆回收器：G1
+
+新生代垃圾回收器一般采用的是复制算法，复制算法的优点是效率高，缺点是内存利用率低；老年代回收器一般采用的是标记-整理的算法进行垃圾回收。
+
+### 简述分代垃圾回收器是怎么工作的？
+
+分代回收器有两个分区：老生代和新生代，新生代默认的空间占比总空间的 1/3，老生代的默认占比是 2/3。
+
+新生代使用的是复制算法，新生代里有 3 个分区：Eden、To Survivor、From Survivor，它们的默认占比是 8:1:1，它的执行流程如下：
+
+- 把 Eden + From Survivor 存活的对象放入 To Survivor 区；
+- 清空 Eden 和 From Survivor 分区；
+- From Survivor 和 To Survivor 分区交换，From Survivor 变 To Survivor，To Survivor 变 From Survivor。
+
+每次在 From Survivor 到 To Survivor 移动时都存活的对象，年龄就 +1，当年龄到达 15（默认配置是 15）时，升级为老生代。大对象也会直接进入老生代。
+
+老生代当空间占用到达某个值之后就会触发全局垃圾收回，一般使用标记整理的执行算法。以上这些循环往复就构成了整个分代垃圾回收的整体执行流程。
+
+## 内存分配策略
+
+### 简述java内存分配与回收策率以及Minor GC和Major GC
+
+所谓自动内存管理，最终要解决的也就是内存分配和内存回收两个问题。前面我们介绍了内存回收，这里我们再来聊聊内存分配。
+
+对象的内存分配通常是在 Java 堆上分配（随着虚拟机优化技术的诞生，某些场景下也会在栈上分配，后面会详细介绍），对象主要分配在新生代的 Eden 区，如果启动了本地线程缓冲，将按照线程优先在 TLAB 上分配。少数情况下也会直接在老年代上分配。总的来说分配规则不是百分百固定的，其细节取决于哪一种垃圾收集器组合以及虚拟机相关参数有关，但是虚拟机对于内存的分配还是会遵循以下几种「普世」规则：
+
+#### 对象优先在 Eden 区分配
+
+多数情况，对象都在新生代 Eden 区分配。当 Eden 区分配没有足够的空间进行分配时，虚拟机将会发起一次 Minor GC。如果本次 GC 后还是没有足够的空间，则将启用分配担保机制在老年代中分配内存。
+
+这里我们提到 Minor GC，如果你仔细观察过 GC 日常，通常我们还能从日志中发现 Major GC/Full GC。
+
+- **Minor GC** 是指发生在新生代的 GC，因为 Java 对象大多都是朝生夕死，所有 Minor GC 非常频繁，一般回收速度也非常快；
+- **Major GC/Full GC** 是指发生在老年代的 GC，出现了 Major GC 通常会伴随至少一次 Minor GC。Major GC 的速度通常会比 Minor GC 慢 10 倍以上。
+
+动态对象年龄别定：
+如果Survivor空间中相同年龄所有对象的大小总和大于Survivor空间的一半，那么年龄大于等于该对象年龄的对象即可晋升到老年代，不必要等到-XX:MaxTenuringThreshold。
+
+空间分配担保：
+发生Minor GC时，虚拟机会检测之前每次晋升到老年代的平均大小是否大于老年代的剩余空间大小。如果大于，则进行一次Full GC （老年代GC） , 如果小于，则查看HandlePromotionFailure设置是否允许担保失败，如果允许，那只会进一次Minor G C ,如果不允许，则改为进行一次Full GC。
+
+#### 大对象直接进入老年代
+
+所谓大对象是指需要大量连续内存空间的对象，频繁出现大对象是致命的，会导致在内存还有不少空间的情况下提前触发 GC 以获取足够的连续空间来安置新对象。
+
+前面我们介绍过新生代使用的是标记-清除算法来处理垃圾回收的，如果大对象直接在新生代分配就会导致 Eden 区和两个 Survivor 区之间发生大量的内存复制。因此对于大对象都会直接在老年代进行分配。
+
+#### 长期存活对象将进入老年代
+
+虚拟机采用分代收集的思想来管理内存，那么内存回收时就必须判断哪些对象应该放在新生代，哪些对象应该放在老年代。因此虚拟机给每个对象定义了一个对象年龄的计数器，如果对象在 Eden 区出生，并且能够被 Survivor 容纳，将被移动到 Survivor 空间中，这时设置对象年龄为 1。对象在 Survivor 区中每「熬过」一次 Minor GC 年龄就加 1，当年龄达到一定程度（默认 15） 就会被晋升到老年代。
+
+## 虚拟机类加载机制
+
+### 简述java类加载机制?
+
+虚拟机把描述类的数据从Class文件加载到内存，并对数据进行校验，解析和初始化，最终形成可以被虚拟机直接使用的java类型。
+
+<img src="java.assets/image-20210307225634553.png" alt="image-20210307225634553" style="zoom:67%;" />
+
+### 描述一下JVM加载Class文件的原理机制
+
+Java中的所有类，都需要由类加载器装载到JVM中才能运行。类加载器本身也是一个类，而它的工作就是把class文件从硬盘读取到内存中。在写程序的时候，我们几乎不需要关心类的加载，因为这些都是隐式装载的，除非我们有特殊的用法，像是反射，就需要显式的加载所需要的类。
+
+类装载方式，有两种 ：
+
+1.隐式装载， 程序在运行过程中当碰到通过new 等方式生成对象时，隐式调用类装载器加载对应的类到jvm中，
+
+2.显式装载， 通过class.forname()等方法，显式加载需要的类
+
+Java类的加载是动态的，它并不会一次性将所有类全部加载后再运行，而是保证程序运行的基础类(像是基类)完全加载到jvm中，至于其他类，则在需要的时候才加载。这当然就是为了节省内存开销。
+
+### 什么是类加载器，类加载器有哪些?
+
+实现通过类的权限定名获取该类的二进制字节流的代码块叫做类加载器。
+
+主要有一下四种类加载器:
+
+1. 启动类加载器(Bootstrap ClassLoader)用来加载java核心类库，无法被java程序直接引用。
+2. 扩展类加载器(extensions class loader):它用来加载 Java 的扩展库。Java 虚拟机的实现会提供一个扩展库目录。该类加载器在此目录里面查找并加载 Java 类。
+3. 系统类加载器（system class loader）：它根据 Java 应用的类路径（CLASSPATH）来加载 Java 类。一般来说，Java 应用的类都是由它来完成加载的。可以通过 ClassLoader.getSystemClassLoader()来获取它。
+4. 用户自定义类加载器，通过继承 java.lang.ClassLoader类的方式实现。
+
+### 说一下类装载的执行过程？
+
+类装载分为以下 5 个步骤：
+
+- 加载：根据查找路径找到相应的 class 文件然后导入；
+- 验证：检查加载的 class 文件的正确性；
+- 准备：给类中的静态变量分配内存空间；
+- 解析：虚拟机将常量池中的符号引用替换成直接引用的过程。符号引用就理解为一个标示，而在直接引用直接指向内存中的地址；
+- 初始化：对静态变量和静态代码块执行初始化工作。
+
+### 什么是双亲委派模型？
+
+在介绍双亲委派模型之前先说下类加载器。对于任意一个类，都需要由加载它的类加载器和这个类本身一同确立在 JVM 中的唯一性，每一个类加载器，都有一个独立的类名称空间。类加载器就是根据指定全限定名称将 class 文件加载到 JVM 内存，然后再转化为 class 对象。
+
+![img](java.assets/20200104165551656.png)
+
+类加载器分类：
+
+- 启动类加载器（Bootstrap ClassLoader），是虚拟机自身的一部分，用来加载Java_HOME/lib/目录中的，或者被 -Xbootclasspath 参数所指定的路径中并且被虚拟机识别的类库；
+- 其他类加载器：
+- 扩展类加载器（Extension ClassLoader）：负责加载\lib\ext目录或Java. ext. dirs系统变量指定的路径中的所有类库；
+- 应用程序类加载器（Application ClassLoader）。负责加载用户类路径（classpath）上的指定类库，我们可以直接使用这个类加载器。一般情况，如果我们没有自定义类加载器默认就是用这个加载器。
+
+双亲委派模型：如果一个类加载器收到了类加载的请求，它首先不会自己去加载这个类，而是把这个请求委派给父类加载器去完成，每一层的类加载器都是如此，这样所有的加载请求都会被传送到顶层的启动类加载器中，只有当父加载无法完成加载请求（它的搜索范围中没找到所需的类）时，子加载器才会尝试去加载类。
+
+当一个类收到了类加载请求时，不会自己先去加载这个类，而是将其委派给父类，由父类去加载，如果此时父类不能加载，反馈给子类，由子类去完成类的加载。
+
+## JVM调优
+
+### 说一下 JVM 调优的工具？
+
+JDK 自带了很多监控工具，都位于 JDK 的 bin 目录下，其中最常用的是 jconsole 和 jvisualvm 这两款视图监控工具。
+
+- jconsole：用于对 JVM 中的内存、线程和类等进行监控；
+- jvisualvm：JDK 自带的全能分析工具，可以分析：内存快照、线程快照、程序死锁、监控内存的变化、gc 变化等。
+
+### 常用的 JVM 调优的参数都有哪些？
+
+- -Xms2g：初始化推大小为 2g；
+- -Xmx2g：堆最大内存为 2g；
+- -XX:NewRatio=4：设置年轻的和老年代的内存比例为 1:4；
+- -XX:SurvivorRatio=8：设置新生代 Eden 和 Survivor 比例为 8:2；
+- –XX:+UseParNewGC：指定使用 ParNew + Serial Old 垃圾回收器组合；
+- -XX:+UseParallelOldGC：指定使用 ParNew + ParNew Old 垃圾回收器组合；
+- -XX:+UseConcMarkSweepGC：指定使用 CMS + Serial Old 垃圾回收器组合；
+- -XX:+PrintGC：开启打印 gc 信息；
+- -XX:+PrintGCDetails：打印 gc 详细信息。
+
+
 
 ## 运行时数据区域
 
@@ -7200,14 +8509,6 @@ Dubbo架构图（Dubbo官方提供）如下：
 5. 服务消费者和提供者，在内存中累计调用次数和调用时间，定时每分钟发送一次统计数据到监控中心。
 
 ## Netty
-
-
-
-###  Netty 面试题总结
-
-Netty 总算总结完了，Guide 也是长舒了一口气。有太多读者私信我让我总结 Netty 了，因为经常会在面试中碰到 Netty 相关的问题。
-
-全文采用大家喜欢的与面试官对话的形式展开。 如果大家觉得 Guide 总结的不错的话，不妨向好朋友们推荐一下 JavaGuide，这是最好礼物，哈哈！
 
 ### Netty 是什么？
 
