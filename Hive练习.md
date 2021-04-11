@@ -298,42 +298,20 @@ u01   2017/2/22    4
 u1 a
 
 u2 b
-
 u1 b
-
 u1 a
-
 u3 c
-
 u4 b
-
 u1 a
-
 u2 c
-
 u5 b
-
 u4 b
-
 u6 c
-
 u2 c
-
 u1 b
-
 u2 a
-
 u2 a
-
 u3 a
-
-u5 a
-
-u5 a
-
-u5 a
-
-
 
 建表：
 
