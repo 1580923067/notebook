@@ -7,6 +7,7 @@ https://www.cndba.cn/lirui/article/3391
 student.txt
 
 ```xml
+s_id  s_name  s_birth      s_sex
 01    赵雷    1990-01-01    男
 02    钱电    1990-12-21    男
 03    孙风    1990-05-20    男
@@ -31,6 +32,7 @@ stored as textfile
 course.txt
 
 ```xml
+c_id c_name t_id
 01 语文 02
 02 数学 01
 03 英语 03
@@ -49,6 +51,7 @@ stored as textfile
 teacher.txt
 
 ```xml
+t_id t_name
 01 张三
 02 李四
 03 王五
@@ -66,6 +69,7 @@ stored as textfile
 score.txt
 
 ```xml
+s_id    c_id    s_score
 01      01      80
 01      02      90
 01      03      99
